@@ -7,9 +7,57 @@ from email.mime.multipart import MIMEMultipart
 import os
 import calendar
 from collections import defaultdict
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import sessionmaker, declarative_base
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'  # Change this in production
+
+# --- SQLite/SQLAlchemy Setup ---
+Base = declarative_base()
+DB_PATH = 'sqlite:///prosonic.db'
+engine = create_engine(DB_PATH, connect_args={'check_same_thread': False})
+SessionLocal = sessionmaker(bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    username = Column(String, unique=True, nullable=False)
+    name = Column(String, nullable=False)
+    role = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    password = Column(String, nullable=False)
+    department = Column(String, nullable=True)
+
+Base.metadata.create_all(engine)
+
+# --- Initial User Data ---
+REAL_USERS = [
+    dict(username='monali',   name='Monali Joshi',            role='member',  email='acc.prosonic@gmail.com',   password='prosonic123', department='Accounts'),
+    dict(username='jaywant',  name='Jaywant Khese',           role='manager', email='trc@prosonic.in',          password='prosonic123', department='Repair'),
+    dict(username='mandar',   name='Mandar Tembe',            role='manager', email='sales@prosonic.in',        password='prosonic123', department='Purchase & Logistics'),
+    dict(username='abhishek', name='Abhishek Tandanlikar',    role='admin',   email='sm@prosonic.in',           password='prosonic123', department='IT'),
+    dict(username='divya',    name='Divya Jori',              role='member',  email='hr@prosonic.in',           password='prosonic123', department='HR'),
+    dict(username='nayan',    name='Nayan Ahir',              role='member',  email='nayanaahir50@gmail.com',   password='prosonic123', department='Design'),
+    dict(username='archana',  name='Archana Tatooskar',       role='manager', email='coo@prosonic.in',          password='prosonic123', department='Operations'),
+    dict(username='amol',     name='Amol Panse',              role='admin',   email='amol.panse@prosonic.in',   password='prosonic123', department='Management'),
+]
+
+def seed_users():
+    db = SessionLocal()
+    if db.query(User).count() == 0:
+        for u in REAL_USERS:
+            db.add(User(**u))
+        db.commit()
+    db.close()
+seed_users()
 
 # Enhanced Data storage with master data
 departments = {
@@ -42,33 +90,6 @@ kra_kpi = {
     'TIMELINE_ADHERENCE': {'name': 'Timeline Adherence', 'target': 85, 'weight': 25},
     'QUALITY_SCORE': {'name': 'Quality Score', 'target': 95, 'weight': 25},
     'COLLABORATION': {'name': 'Collaboration Score', 'target': 80, 'weight': 20}
-}
-
-users = {
-    'monali': {
-        'password': 'prosonic123', 'role': 'member', 'name': 'Monali Joshi', 'email': 'acc.prosonic@gmail.com', 'department': 'Accounts'
-    },
-    'jaywant': {
-        'password': 'prosonic123', 'role': 'manager', 'name': 'Jaywant Khese', 'email': 'trc@prosonic.in', 'department': 'Repair'
-    },
-    'mandar': {
-        'password': 'prosonic123', 'role': 'manager', 'name': 'Mandar Tembe', 'email': 'sales@prosonic.in', 'department': 'Purchase & Logistics'
-    },
-    'abhishek': {
-        'password': 'prosonic123', 'role': 'admin', 'name': 'Abhishek Tandanlikar', 'email': 'sm@prosonic.in', 'department': 'IT'
-    },
-    'divya': {
-        'password': 'prosonic123', 'role': 'member', 'name': 'Divya Jori', 'email': 'hr@prosonic.in', 'department': 'HR'
-    },
-    'nayan': {
-        'password': 'prosonic123', 'role': 'member', 'name': 'Nayan Ahir', 'email': 'nayanaahir50@gmail.com', 'department': 'Design'
-    },
-    'archana': {
-        'password': 'prosonic123', 'role': 'manager', 'name': 'Archana Tatooskar', 'email': 'coo@prosonic.in', 'department': 'Operations'
-    },
-    'amol': {
-        'password': 'prosonic123', 'role': 'admin', 'name': 'Amol Panse', 'email': 'amol.panse@prosonic.in', 'department': 'Management'
-    }
 }
 
 # Sample tasks for demonstration
@@ -278,11 +299,13 @@ def home():
         return redirect(url_for('login'))
     
     user = session['user']
-    user_data = users[user]
+    db = SessionLocal()
+    user_data = db.query(User).filter_by(username=user).first()
+    db.close()
     
-    if user_data['role'] == 'admin':
+    if user_data.role == 'admin':
         return redirect(url_for('admin_dashboard'))
-    elif user_data['role'] == 'manager':
+    elif user_data.role == 'manager':
         return redirect(url_for('manager_dashboard'))
     else:
         return redirect(url_for('member_dashboard'))
@@ -297,13 +320,19 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        
-        if username in users and users[username]['password'] == password:
-            session['user'] = username
-            return redirect(url_for('home'))
+        db = SessionLocal()
+        user = db.query(User).filter_by(username=username, password=password).first()
+        db.close()
+        if user:
+            session['user'] = user.username
+            if user.role == 'admin':
+                return redirect(url_for('admin_dashboard'))
+            elif user.role == 'manager':
+                return redirect(url_for('manager_dashboard'))
+            else:
+                return redirect(url_for('member_dashboard'))
         else:
-            flash('Invalid credentials')
-    
+            flash('Invalid credentials. Please try again.')
     return render_template('login.html')
 
 @app.route('/logout')
@@ -313,7 +342,14 @@ def logout():
 
 @app.route('/admin/dashboard')
 def admin_dashboard():
-    if 'user' not in session or users[session['user']]['role'] != 'admin':
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    db = SessionLocal()
+    user_data = db.query(User).filter_by(username=session['user']).first()
+    db.close()
+
+    if user_data.role != 'admin':
         return redirect(url_for('login'))
     
     # Get current month stats
@@ -343,7 +379,14 @@ def admin_dashboard():
 
 @app.route('/manager/dashboard')
 def manager_dashboard():
-    if 'user' not in session or users[session['user']]['role'] != 'manager':
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    db = SessionLocal()
+    user_data = db.query(User).filter_by(username=session['user']).first()
+    db.close()
+
+    if user_data.role != 'manager':
         return redirect(url_for('login'))
     
     manager = session['user']
@@ -376,7 +419,14 @@ def manager_dashboard():
 
 @app.route('/member/dashboard')
 def member_dashboard():
-    if 'user' not in session or users[session['user']]['role'] != 'member':
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    db = SessionLocal()
+    user_data = db.query(User).filter_by(username=session['user']).first()
+    db.close()
+
+    if user_data.role != 'member':
         return redirect(url_for('login'))
     
     member = session['user']
@@ -393,7 +443,7 @@ def member_dashboard():
     
     return render_template('member_dashboard.html',
                          tasks=my_tasks,
-                         user_data=users[member],
+                         user_data=user_data,
                          date_wise_tasks=dict(date_wise_tasks),
                          personal_stats=personal_stats)
 
@@ -446,18 +496,20 @@ def create_task():
     
     # Get available team members based on user role
     user = session['user']
-    user_data = users[user]
+    db = SessionLocal()
+    user_data = db.query(User).filter_by(username=user).first()
+    db.close()
     
-    if user_data['role'] == 'admin':
+    if user_data.role == 'admin':
         available_members = [u for u in users if users[u]['role'] == 'member']
-    elif user_data['role'] == 'manager':
+    elif user_data.role == 'manager':
         available_members = user_data['team']
     else:
         available_members = []
     
     # Get available projects for user's department
     available_projects = {}
-    if user_data['role'] in ['admin', 'manager']:
+    if user_data.role in ['admin', 'manager']:
         dept = user_data['department']
         available_projects = {pid: pdata for pid, pdata in projects.items() if pdata['department'] == dept}
     
@@ -767,7 +819,7 @@ def stage_wise_report():
 
 @app.route('/admin/master_data')
 def master_data_management():
-    if 'user' not in session or users[session['user']]['role'] != 'admin':
+    if 'user' not in session:
         return redirect(url_for('login'))
     
     return render_template('admin/master_data.html',
@@ -779,7 +831,7 @@ def master_data_management():
 
 @app.route('/admin/add_department', methods=['POST'])
 def add_department():
-    if 'user' not in session or users[session['user']]['role'] != 'admin':
+    if 'user' not in session:
         return redirect(url_for('login'))
     
     dept_id = request.form['dept_id']
@@ -796,7 +848,7 @@ def add_department():
 
 @app.route('/admin/add_project', methods=['POST'])
 def add_project():
-    if 'user' not in session or users[session['user']]['role'] != 'admin':
+    if 'user' not in session:
         return redirect(url_for('login'))
     
     project_id = request.form['project_id']
@@ -817,7 +869,7 @@ def add_project():
 
 @app.route('/admin/add_user', methods=['POST'])
 def add_user():
-    if 'user' not in session or users[session['user']]['role'] != 'admin':
+    if 'user' not in session:
         return redirect(url_for('login'))
     
     username = request.form['username']
