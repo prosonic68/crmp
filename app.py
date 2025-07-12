@@ -897,5 +897,18 @@ def add_user():
     flash('User added successfully!')
     return redirect(url_for('master_data_management'))
 
+@app.route('/debug/users')
+def debug_users():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    db = SessionLocal()
+    user = db.query(User).filter_by(username=session['user']).first()
+    if not user or user.role != 'admin':
+        db.close()
+        return 'Unauthorized', 403
+    users = db.query(User).all()
+    db.close()
+    return '<br>'.join([f"{u.username} | {u.name} | {u.role} | {u.email}" for u in users])
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)
