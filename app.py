@@ -13,9 +13,37 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'  # Change this in production
 
+# --- Task class must be defined before use ---
+class Task:
+    def __init__(self, id, title, description, assigned_by, assigned_to, timeline_days, priority='medium', 
+                 category='DEV', project_id=None, department=None):
+        self.id = id
+        self.title = title
+        self.description = description
+        self.assigned_by = assigned_by
+        self.assigned_to = assigned_to
+        self.created_date = datetime.now()
+        self.target_date = datetime.now() + timedelta(days=timeline_days)
+        self.review_date = self.target_date - timedelta(days=1)
+        self.status = 'pending'  # pending, accepted, in_progress, completed, validated, reopened
+        self.priority = priority
+        self.category = category
+        self.project_id = project_id
+        self.department = department
+        self.accepted_date = None
+        self.completion_date = None
+        self.validation_date = None
+        self.roadmap = []
+        self.reminders = []
+        self.extension_requests = []
+        self.kra_score = 0
+        self.quality_score = 0
+        self.collaboration_score = 0
+
 # --- SQLite/SQLAlchemy Setup ---
 Base = declarative_base()
-DB_PATH = 'sqlite:///prosonic.db'
+# Use /data for SQLite on Render
+DB_PATH = 'sqlite:////data/prosonic.db' if os.environ.get('RENDER') else 'sqlite:///prosonic.db'
 engine = create_engine(DB_PATH, connect_args={'check_same_thread': False})
 SessionLocal = sessionmaker(bind=engine)
 
@@ -143,32 +171,6 @@ tasks[5].kra_score = 91.8
 
 task_requests = []
 kra_scores = {}
-
-class Task:
-    def __init__(self, id, title, description, assigned_by, assigned_to, timeline_days, priority='medium', 
-                 category='DEV', project_id=None, department=None):
-        self.id = id
-        self.title = title
-        self.description = description
-        self.assigned_by = assigned_by
-        self.assigned_to = assigned_to
-        self.created_date = datetime.now()
-        self.target_date = datetime.now() + timedelta(days=timeline_days)
-        self.review_date = self.target_date - timedelta(days=1)
-        self.status = 'pending'  # pending, accepted, in_progress, completed, validated, reopened
-        self.priority = priority
-        self.category = category
-        self.project_id = project_id
-        self.department = department or users[assigned_to]['department']
-        self.accepted_date = None
-        self.completion_date = None
-        self.validation_date = None
-        self.roadmap = []
-        self.reminders = []
-        self.extension_requests = []
-        self.kra_score = 0
-        self.quality_score = 0
-        self.collaboration_score = 0
 
 def send_email(to_email, subject, body):
     """Send email notification using Prosonic.in SMTP"""
