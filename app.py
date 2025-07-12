@@ -13,10 +13,10 @@ app.secret_key = 'your-secret-key-here'  # Change this in production
 
 # Enhanced Data storage with master data
 departments = {
-    'IT': {'name': 'Information Technology', 'manager': 'manager1'},
-    'HR': {'name': 'Human Resources', 'manager': 'manager2'},
-    'FIN': {'name': 'Finance', 'manager': 'manager3'},
-    'MKT': {'name': 'Marketing', 'manager': 'manager4'}
+    'IT': {'name': 'Information Technology', 'manager': 'abhishek'},
+    'HR': {'name': 'Human Resources', 'manager': 'archana'},
+    'FIN': {'name': 'Finance', 'manager': 'amol'},
+    'MKT': {'name': 'Marketing', 'manager': 'amol'}
 }
 
 projects = {
@@ -45,19 +45,30 @@ kra_kpi = {
 }
 
 users = {
-    'admin': {'password': 'admin', 'role': 'admin', 'name': 'Admin User', 'email': 'admin@prosonic.in', 'department': 'IT'},
-    'manager1': {'password': 'manager123', 'role': 'manager', 'name': 'John Manager', 'email': 'john.manager@prosonic.in', 'department': 'IT', 'team': ['user1', 'user2']},
-    'manager2': {'password': 'manager123', 'role': 'manager', 'name': 'Sarah HR Manager', 'email': 'sarah.hr@prosonic.in', 'department': 'HR', 'team': ['user3', 'user4']},
-    'manager3': {'password': 'manager123', 'role': 'manager', 'name': 'Mike Finance Manager', 'email': 'mike.finance@prosonic.in', 'department': 'FIN', 'team': ['user5', 'user6']},
-    'manager4': {'password': 'manager123', 'role': 'manager', 'name': 'Lisa Marketing Manager', 'email': 'lisa.marketing@prosonic.in', 'department': 'MKT', 'team': ['user7', 'user8']},
-    'user1': {'password': 'user123', 'role': 'member', 'name': 'Alice Developer', 'email': 'alice.dev@prosonic.in', 'department': 'IT', 'manager': 'manager1'},
-    'user2': {'password': 'user123', 'role': 'member', 'name': 'Bob Tester', 'email': 'bob.test@prosonic.in', 'department': 'IT', 'manager': 'manager1'},
-    'user3': {'password': 'user123', 'role': 'member', 'name': 'Carol HR Assistant', 'email': 'carol.hr@prosonic.in', 'department': 'HR', 'manager': 'manager2'},
-    'user4': {'password': 'user123', 'role': 'member', 'name': 'David Recruiter', 'email': 'david.recruit@prosonic.in', 'department': 'HR', 'manager': 'manager2'},
-    'user5': {'password': 'user123', 'role': 'member', 'name': 'Eve Accountant', 'email': 'eve.accounts@prosonic.in', 'department': 'FIN', 'manager': 'manager3'},
-    'user6': {'password': 'user123', 'role': 'member', 'name': 'Frank Analyst', 'email': 'frank.analyst@prosonic.in', 'department': 'FIN', 'manager': 'manager3'},
-    'user7': {'password': 'user123', 'role': 'member', 'name': 'Grace Designer', 'email': 'grace.design@prosonic.in', 'department': 'MKT', 'manager': 'manager4'},
-    'user8': {'password': 'user123', 'role': 'member', 'name': 'Henry Copywriter', 'email': 'henry.copy@prosonic.in', 'department': 'MKT', 'manager': 'manager4'}
+    'monali': {
+        'password': 'prosonic123', 'role': 'member', 'name': 'Monali Joshi', 'email': 'acc.prosonic@gmail.com', 'department': 'Accounts'
+    },
+    'jaywant': {
+        'password': 'prosonic123', 'role': 'manager', 'name': 'Jaywant Khese', 'email': 'trc@prosonic.in', 'department': 'Repair'
+    },
+    'mandar': {
+        'password': 'prosonic123', 'role': 'manager', 'name': 'Mandar Tembe', 'email': 'sales@prosonic.in', 'department': 'Purchase & Logistics'
+    },
+    'abhishek': {
+        'password': 'prosonic123', 'role': 'admin', 'name': 'Abhishek Tandanlikar', 'email': 'sm@prosonic.in', 'department': 'IT'
+    },
+    'divya': {
+        'password': 'prosonic123', 'role': 'member', 'name': 'Divya Jori', 'email': 'hr@prosonic.in', 'department': 'HR'
+    },
+    'nayan': {
+        'password': 'prosonic123', 'role': 'member', 'name': 'Nayan Ahir', 'email': 'nayanaahir50@gmail.com', 'department': 'Design'
+    },
+    'archana': {
+        'password': 'prosonic123', 'role': 'manager', 'name': 'Archana Tatooskar', 'email': 'coo@prosonic.in', 'department': 'Operations'
+    },
+    'amol': {
+        'password': 'prosonic123', 'role': 'admin', 'name': 'Amol Panse', 'email': 'amol.panse@prosonic.in', 'department': 'Management'
+    }
 }
 
 # Sample tasks for demonstration
