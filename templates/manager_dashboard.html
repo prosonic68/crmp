@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manager Dashboard - Enterprise Task Manager</title>
+    <title>Manager Dashboard - Prosonic Task Manager</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -255,7 +255,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>👥 Manager Dashboard</h1>
+        <h1>👥 <span style="color: #dc3545;">Prosonic</span> Manager Dashboard</h1>
         <div class="user-info">
             <span>Welcome, {{ users[session['user']]['name'] }}</span>
             <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>

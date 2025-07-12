@@ -1,4 +1,4 @@
-# Enterprise Task Management System
+# Prosonic Task Management System
 
 A comprehensive Flask-based task management system with role-based access, KRA scoring, reporting, and master data management.
 
