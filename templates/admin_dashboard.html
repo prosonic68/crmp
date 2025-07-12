@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Enterprise Task Manager</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .section {
+            background: white;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .section-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .section-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 20px;
+        }
+        .section-content {
+            padding: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background: #5a6fd8;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .table th, .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-accepted {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-validated {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+        .status-reopened {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .priority-high {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .priority-medium {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        .priority-low {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .kra-score {
+            font-weight: bold;
+        }
+        .kra-excellent { color: #28a745; }
+        .kra-good { color: #17a2b8; }
+        .kra-average { color: #ffc107; }
+        .kra-poor { color: #dc3545; }
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        .flash-message {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 Admin Dashboard</h1>
+        <div class="user-info">
+            <span>Welcome, Admin User</span>
+            <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="flash-message">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Statistics Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ tasks|length }}</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ tasks|selectattr('status', 'equalto', 'pending')|list|length }}</div>
+                <div class="stat-label">Pending Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ tasks|selectattr('status', 'equalto', 'validated')|list|length }}</div>
+                <div class="stat-label">Completed Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ users|length }}</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+        </div>
+
+        <!-- System Actions -->
+        <div class="section">
+            <div class="section-header">
+                <h2>System Actions</h2>
+            </div>
+            <div class="section-content">
+                <a href="{{ url_for('create_task') }}" class="btn">Create New Task</a>
+                <a href="{{ url_for('send_daily_kra') }}" class="btn btn-success">Send Daily KRA Report</a>
+                <a href="{{ url_for('master_data_management') }}" class="btn">Master Data Management</a>
+            </div>
+        </div>
+
+        <!-- Reports & Analytics -->
+        <div class="section">
+            <div class="section-header">
+                <h2>📊 Reports & Analytics</h2>
+            </div>
+            <div class="section-content">
+                <a href="{{ url_for('monthly_report') }}" class="btn">Monthly Task Report</a>
+                <a href="{{ url_for('employee_report') }}" class="btn">Employee Performance Report</a>
+                <a href="{{ url_for('stage_wise_report') }}" class="btn">Stage-wise Task Report</a>
+            </div>
+        </div>
+
+        <!-- All Tasks Overview -->
+        <div class="section">
+            <div class="section-header">
+                <h2>All Tasks Overview</h2>
+            </div>
+            <div class="section-content">
+                {% if tasks %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Assigned To</th>
+                                <th>Status</th>
+                                <th>Priority</th>
+                                <th>Target Date</th>
+                                <th>KRA Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                                <tr>
+                                    <td>{{ task.id }}</td>
+                                    <td>{{ task.title }}</td>
+                                    <td>{{ users[task.assigned_to]['name'] }}</td>
+                                    <td>
+                                        <span class="status-badge status-{{ task.status }}">
+                                            {{ task.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="priority-{{ task.priority }}">
+                                            {{ task.priority|title }}
+                                        </span>
+                                    </td>
+                                    <td>{{ task.target_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        {% if task.kra_score > 0 %}
+                                            <span class="kra-score 
+                                                {% if task.kra_score >= 80 %}kra-excellent
+                                                {% elif task.kra_score >= 60 %}kra-good
+                                                {% elif task.kra_score >= 40 %}kra-average
+                                                {% else %}kra-poor{% endif %}">
+                                                {{ task.kra_score }}%
+                                            </span>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>No tasks found.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- User Management -->
+        <div class="section">
+            <div class="section-header">
+                <h2>User Management</h2>
+            </div>
+            <div class="section-content">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Role</th>
+                            <th>Email</th>
+                            <th>Team</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for username, user_data in users.items() %}
+                            <tr>
+                                <td>{{ username }}</td>
+                                <td>{{ user_data.name }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ user_data.role }}">
+                                        {{ user_data.role|title }}
+                                    </span>
+                                </td>
+                                <td>{{ user_data.email }}</td>
+                                <td>
+                                    {% if user_data.role == 'manager' and user_data.team %}
+                                        {{ user_data.team|join(', ') }}
+                                    {% elif user_data.role == 'member' and user_data.manager %}
+                                        Managed by: {{ users[user_data.manager]['name'] }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- KRA Performance -->
+        <div class="section">
+            <div class="section-header">
+                <h2>KRA Performance Overview</h2>
+            </div>
+            <div class="section-content">
+                {% if kra_scores %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Team Member</th>
+                                <th>Total Tasks</th>
+                                <th>Average KRA Score</th>
+                                <th>Best Score</th>
+                                <th>Recent Performance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for member, scores in kra_scores.items() %}
+                                {% set avg_score = (scores|map(attribute='score')|sum) / scores|length %}
+                                {% set best_score = scores|map(attribute='score')|max %}
+                                <tr>
+                                    <td>{{ users[member]['name'] }}</td>
+                                    <td>{{ scores|length }}</td>
+                                    <td>
+                                        <span class="kra-score 
+                                            {% if avg_score >= 80 %}kra-excellent
+                                            {% elif avg_score >= 60 %}kra-good
+                                            {% elif avg_score >= 40 %}kra-average
+                                            {% else %}kra-poor{% endif %}">
+                                            {{ "%.1f"|format(avg_score) }}%
+                                        </span>
+                                    </td>
+                                    <td>{{ best_score }}%</td>
+                                    <td>
+                                        {% for score in scores[-3:] %}
+                                            <span class="kra-score 
+                                                {% if score.score >= 80 %}kra-excellent
+                                                {% elif score.score >= 60 %}kra-good
+                                                {% elif score.score >= 40 %}kra-average
+                                                {% else %}kra-poor{% endif %}">
+                                                {{ score.score }}%
+                                            </span>
+                                            {% if not loop.last %} | {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>No KRA data available yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

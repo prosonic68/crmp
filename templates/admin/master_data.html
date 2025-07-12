@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Data Management - Enterprise Task Manager</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section {
+            background: white;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .section-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .section-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 20px;
+        }
+        .section-content {
+            padding: 30px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .form-group textarea {
+            height: 80px;
+            resize: vertical;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #5a6fd8;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .table th, .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-admin { background: #dc3545; color: white; }
+        .status-manager { background: #17a2b8; color: white; }
+        .status-member { background: #28a745; color: white; }
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        .flash-message {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .kra-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .kra-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .kra-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .kra-details {
+            font-size: 14px;
+            color: #666;
+        }
+        .kra-target {
+            font-weight: bold;
+            color: #28a745;
+        }
+        .kra-weight {
+            font-weight: bold;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚙️ Master Data Management</h1>
+        <div class="user-info">
+            <a href="{{ url_for('admin_dashboard') }}" class="logout-btn">Back to Dashboard</a>
+            <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="flash-message">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Department Management -->
+        <div class="section">
+            <div class="section-header">
+                <h2>🏢 Department Management</h2>
+            </div>
+            <div class="section-content">
+                <form method="POST" action="{{ url_for('add_department') }}">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="dept_id">Department ID</label>
+                            <input type="text" id="dept_id" name="dept_id" required placeholder="e.g., IT, HR, FIN">
+                        </div>
+                        <div class="form-group">
+                            <label for="dept_name">Department Name</label>
+                            <input type="text" id="dept_name" name="dept_name" required placeholder="e.g., Information Technology">
+                        </div>
+                        <div class="form-group">
+                            <label for="manager">Department Manager</label>
+                            <select id="manager" name="manager" required>
+                                <option value="">Select Manager</option>
+                                {% for user_id, user_data in users.items() %}
+                                    {% if user_data.role == 'manager' %}
+                                        <option value="{{ user_id }}">{{ user_data.name }} ({{ user_data.department }})</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Add Department</button>
+                </form>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Department ID</th>
+                            <th>Department Name</th>
+                            <th>Manager</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dept_id, dept_data in departments.items() %}
+                            <tr>
+                                <td>{{ dept_id }}</td>
+                                <td>{{ dept_data.name }}</td>
+                                <td>{{ users[dept_data.manager]['name'] if dept_data.manager in users else 'Not Assigned' }}</td>
+                                <td>
+                                    <button class="btn btn-danger">Delete</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Project Management -->
+        <div class="section">
+            <div class="section-header">
+                <h2>📋 Project Management</h2>
+            </div>
+            <div class="section-content">
+                <form method="POST" action="{{ url_for('add_project') }}">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="project_id">Project ID</label>
+                            <input type="text" id="project_id" name="project_id" required placeholder="e.g., PROJ001">
+                        </div>
+                        <div class="form-group">
+                            <label for="project_name">Project Name</label>
+                            <input type="text" id="project_name" name="project_name" required placeholder="e.g., Website Redesign">
+                        </div>
+                        <div class="form-group">
+                            <label for="department">Department</label>
+                            <select id="department" name="department" required>
+                                <option value="">Select Department</option>
+                                {% for dept_id, dept_data in departments.items() %}
+                                    <option value="{{ dept_id }}">{{ dept_data.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="start_date">Start Date</label>
+                            <input type="date" id="start_date" name="start_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="end_date">End Date</label>
+                            <input type="date" id="end_date" name="end_date" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Add Project</button>
+                </form>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Project ID</th>
+                            <th>Project Name</th>
+                            <th>Department</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project_id, project_data in projects.items() %}
+                            <tr>
+                                <td>{{ project_id }}</td>
+                                <td>{{ project_data.name }}</td>
+                                <td>{{ departments[project_data.department]['name'] }}</td>
+                                <td>{{ project_data.start_date }}</td>
+                                <td>{{ project_data.end_date }}</td>
+                                <td>
+                                    <button class="btn btn-danger">Delete</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- User Management -->
+        <div class="section">
+            <div class="section-header">
+                <h2>👥 User Management</h2>
+            </div>
+            <div class="section-content">
+                <form method="POST" action="{{ url_for('add_user') }}">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" name="username" required placeholder="e.g., john.doe">
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" required placeholder="Enter password">
+                        </div>
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" id="name" name="name" required placeholder="e.g., John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required placeholder="e.g., john@company.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="role">Role</label>
+                            <select id="role" name="role" required>
+                                <option value="">Select Role</option>
+                                <option value="admin">Admin</option>
+                                <option value="manager">Manager</option>
+                                <option value="member">Team Member</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="department">Department</label>
+                            <select id="department" name="department" required>
+                                <option value="">Select Department</option>
+                                {% for dept_id, dept_data in departments.items() %}
+                                    <option value="{{ dept_id }}">{{ dept_data.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Add User</button>
+                </form>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Department</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user_id, user_data in users.items() %}
+                            <tr>
+                                <td>{{ user_id }}</td>
+                                <td>{{ user_data.name }}</td>
+                                <td>{{ user_data.email }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ user_data.role }}">
+                                        {{ user_data.role|title }}
+                                    </span>
+                                </td>
+                                <td>{{ departments[user_data.department]['name'] if user_data.department in departments else 'N/A' }}</td>
+                                <td>
+                                    <button class="btn btn-danger">Delete</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- KRA/KPI Management -->
+        <div class="section">
+            <div class="section-header">
+                <h2>📊 KRA/KPI Management</h2>
+            </div>
+            <div class="section-content">
+                <div class="kra-grid">
+                    {% for kra_id, kra_data in kra_kpi.items() %}
+                        <div class="kra-card">
+                            <div class="kra-title">{{ kra_data.name }}</div>
+                            <div class="kra-details">
+                                <div><strong>Target:</strong> <span class="kra-target">{{ kra_data.target }}%</span></div>
+                                <div><strong>Weight:</strong> <span class="kra-weight">{{ kra_data.weight }}%</span></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Categories -->
+        <div class="section">
+            <div class="section-header">
+                <h2>🏷️ Task Categories</h2>
+            </div>
+            <div class="section-content">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Category ID</th>
+                            <th>Category Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category_id, category_name in task_categories.items() %}
+                            <tr>
+                                <td>{{ category_id }}</td>
+                                <td>{{ category_name }}</td>
+                                <td>
+                                    <button class="btn btn-danger">Delete</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 
