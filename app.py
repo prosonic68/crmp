@@ -45,19 +45,19 @@ kra_kpi = {
 }
 
 users = {
-    'admin': {'password': 'admin', 'role': 'admin', 'name': 'Admin User', 'email': 'admin@company.com', 'department': 'IT'},
-    'manager1': {'password': 'manager123', 'role': 'manager', 'name': 'John Manager', 'email': 'manager@company.com', 'department': 'IT', 'team': ['user1', 'user2']},
-    'manager2': {'password': 'manager123', 'role': 'manager', 'name': 'Sarah HR Manager', 'email': 'hr@company.com', 'department': 'HR', 'team': ['user3', 'user4']},
-    'manager3': {'password': 'manager123', 'role': 'manager', 'name': 'Mike Finance Manager', 'email': 'finance@company.com', 'department': 'FIN', 'team': ['user5', 'user6']},
-    'manager4': {'password': 'manager123', 'role': 'manager', 'name': 'Lisa Marketing Manager', 'email': 'marketing@company.com', 'department': 'MKT', 'team': ['user7', 'user8']},
-    'user1': {'password': 'user123', 'role': 'member', 'name': 'Alice Developer', 'email': 'alice@company.com', 'department': 'IT', 'manager': 'manager1'},
-    'user2': {'password': 'user123', 'role': 'member', 'name': 'Bob Tester', 'email': 'bob@company.com', 'department': 'IT', 'manager': 'manager1'},
-    'user3': {'password': 'user123', 'role': 'member', 'name': 'Carol HR Assistant', 'email': 'carol@company.com', 'department': 'HR', 'manager': 'manager2'},
-    'user4': {'password': 'user123', 'role': 'member', 'name': 'David Recruiter', 'email': 'david@company.com', 'department': 'HR', 'manager': 'manager2'},
-    'user5': {'password': 'user123', 'role': 'member', 'name': 'Eve Accountant', 'email': 'eve@company.com', 'department': 'FIN', 'manager': 'manager3'},
-    'user6': {'password': 'user123', 'role': 'member', 'name': 'Frank Analyst', 'email': 'frank@company.com', 'department': 'FIN', 'manager': 'manager3'},
-    'user7': {'password': 'user123', 'role': 'member', 'name': 'Grace Designer', 'email': 'grace@company.com', 'department': 'MKT', 'manager': 'manager4'},
-    'user8': {'password': 'user123', 'role': 'member', 'name': 'Henry Copywriter', 'email': 'henry@company.com', 'department': 'MKT', 'manager': 'manager4'}
+    'admin': {'password': 'admin', 'role': 'admin', 'name': 'Admin User', 'email': 'admin@prosonic.in', 'department': 'IT'},
+    'manager1': {'password': 'manager123', 'role': 'manager', 'name': 'John Manager', 'email': 'john.manager@prosonic.in', 'department': 'IT', 'team': ['user1', 'user2']},
+    'manager2': {'password': 'manager123', 'role': 'manager', 'name': 'Sarah HR Manager', 'email': 'sarah.hr@prosonic.in', 'department': 'HR', 'team': ['user3', 'user4']},
+    'manager3': {'password': 'manager123', 'role': 'manager', 'name': 'Mike Finance Manager', 'email': 'mike.finance@prosonic.in', 'department': 'FIN', 'team': ['user5', 'user6']},
+    'manager4': {'password': 'manager123', 'role': 'manager', 'name': 'Lisa Marketing Manager', 'email': 'lisa.marketing@prosonic.in', 'department': 'MKT', 'team': ['user7', 'user8']},
+    'user1': {'password': 'user123', 'role': 'member', 'name': 'Alice Developer', 'email': 'alice.dev@prosonic.in', 'department': 'IT', 'manager': 'manager1'},
+    'user2': {'password': 'user123', 'role': 'member', 'name': 'Bob Tester', 'email': 'bob.test@prosonic.in', 'department': 'IT', 'manager': 'manager1'},
+    'user3': {'password': 'user123', 'role': 'member', 'name': 'Carol HR Assistant', 'email': 'carol.hr@prosonic.in', 'department': 'HR', 'manager': 'manager2'},
+    'user4': {'password': 'user123', 'role': 'member', 'name': 'David Recruiter', 'email': 'david.recruit@prosonic.in', 'department': 'HR', 'manager': 'manager2'},
+    'user5': {'password': 'user123', 'role': 'member', 'name': 'Eve Accountant', 'email': 'eve.accounts@prosonic.in', 'department': 'FIN', 'manager': 'manager3'},
+    'user6': {'password': 'user123', 'role': 'member', 'name': 'Frank Analyst', 'email': 'frank.analyst@prosonic.in', 'department': 'FIN', 'manager': 'manager3'},
+    'user7': {'password': 'user123', 'role': 'member', 'name': 'Grace Designer', 'email': 'grace.design@prosonic.in', 'department': 'MKT', 'manager': 'manager4'},
+    'user8': {'password': 'user123', 'role': 'member', 'name': 'Henry Copywriter', 'email': 'henry.copy@prosonic.in', 'department': 'MKT', 'manager': 'manager4'}
 }
 
 # Sample tasks for demonstration
@@ -139,22 +139,51 @@ class Task:
         self.collaboration_score = 0
 
 def send_email(to_email, subject, body):
-    """Send email notification (configure with your SMTP settings)"""
+    """Send email notification using Prosonic.in SMTP"""
     try:
-        # Configure your SMTP settings here
-        # msg = MIMEMultipart()
-        # msg['From'] = 'your-email@company.com'
-        # msg['To'] = to_email
-        # msg['Subject'] = subject
-        # msg.attach(MIMEText(body, 'plain'))
-        # server = smtplib.SMTP('smtp.gmail.com', 587)
-        # server.starttls()
-        # server.login('your-email@company.com', 'your-password')
-        # server.send_message(msg)
-        # server.quit()
-        print(f"Email sent to {to_email}: {subject}")
+        msg = MIMEMultipart()
+        msg['From'] = 'sm@prosonic.in'
+        msg['To'] = to_email
+        msg['Subject'] = f"[Prosonic Task Manager] {subject}"
+        
+        # Create HTML email template
+        html_body = f"""
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }}
+                .content {{ padding: 20px; }}
+                .footer {{ background: #f8f9fa; padding: 15px; text-align: center; color: #666; font-size: 12px; }}
+                .btn {{ display: inline-block; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; }}
+                .prosonic {{ color: #dc3545; font-weight: bold; }}
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>🚀 <span class="prosonic">Prosonic</span> Task Manager</h1>
+            </div>
+            <div class="content">
+                {body.replace(chr(10), '<br>')}
+            </div>
+            <div class="footer">
+                <p>This is an automated notification from <span class="prosonic">Prosonic</span> Task Management System</p>
+                <p>Please do not reply to this email</p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        msg.attach(MIMEText(html_body, 'html'))
+        
+        server = smtplib.SMTP('smtp.prosonic.in', 587)
+        server.starttls()
+        server.login('sm@prosonic.in', 'Abhishek9@')
+        server.send_message(msg)
+        server.quit()
+        print(f"✅ Email sent to {to_email}: {subject}")
     except Exception as e:
-        print(f"Email sending failed: {e}")
+        print(f"❌ Email sending failed: {e}")
 
 def calculate_kra_score(task):
     """Calculate comprehensive KRA score"""
@@ -608,6 +637,36 @@ def send_daily_kra():
                   f'Your daily KRA score for {today}: {score:.2f}%')
     
     flash('Daily KRA scores sent to all team members!')
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/test_email')
+def test_email():
+    """Test email functionality"""
+    if 'user' not in session or users[session['user']]['role'] != 'admin':
+        return redirect(url_for('login'))
+    
+    try:
+        test_email = users[session['user']]['email']
+        send_email(test_email,
+                  'Email Test - Prosonic Task Manager',
+                  f'''Hello {users[session['user']]['name']},
+
+This is a test email from your Prosonic Task Management System.
+
+Email Configuration:
+- SMTP Server: smtp.prosonic.in
+- Port: 587
+- From: sm@prosonic.in
+
+If you receive this email, your email configuration is working correctly!
+
+Best regards,
+Prosonic Task Management System''')
+        
+        flash('✅ Test email sent successfully! Check your inbox.')
+    except Exception as e:
+        flash(f'❌ Email test failed: {str(e)}')
+    
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/reports/monthly')
