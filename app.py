@@ -7,8 +7,6 @@ from email.mime.multipart import MIMEMultipart
 import os
 import calendar
 from collections import defaultdict
-from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.orm import sessionmaker, declarative_base
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'  # Change this in production
@@ -40,52 +38,17 @@ class Task:
         self.quality_score = 0
         self.collaboration_score = 0
 
-# --- SQLite/SQLAlchemy Setup ---
-Base = declarative_base()
-# Use /data for SQLite on Render
-DB_PATH = 'sqlite:////data/prosonic.db' if os.environ.get('RENDER') else 'sqlite:///prosonic.db'
-engine = create_engine(DB_PATH, connect_args={'check_same_thread': False})
-SessionLocal = sessionmaker(bind=engine)
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-class User(Base):
-    __tablename__ = 'users'
-    id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True, nullable=False)
-    name = Column(String, nullable=False)
-    role = Column(String, nullable=False)
-    email = Column(String, unique=True, nullable=False)
-    password = Column(String, nullable=False)
-    department = Column(String, nullable=True)
-
-Base.metadata.create_all(engine)
-
-# --- Initial User Data ---
-REAL_USERS = [
-    dict(username='monali',   name='Monali Joshi',            role='member',  email='acc.prosonic@gmail.com',   password='prosonic123', department='Accounts'),
-    dict(username='jaywant',  name='Jaywant Khese',           role='manager', email='trc@prosonic.in',          password='prosonic123', department='Repair'),
-    dict(username='mandar',   name='Mandar Tembe',            role='manager', email='sales@prosonic.in',        password='prosonic123', department='Purchase & Logistics'),
-    dict(username='abhishek', name='Abhishek Tandanlikar',    role='admin',   email='sm@prosonic.in',           password='prosonic123', department='IT'),
-    dict(username='divya',    name='Divya Jori',              role='member',  email='hr@prosonic.in',           password='prosonic123', department='HR'),
-    dict(username='nayan',    name='Nayan Ahir',              role='member',  email='nayanaahir50@gmail.com',   password='prosonic123', department='Design'),
-    dict(username='archana',  name='Archana Tatooskar',       role='manager', email='coo@prosonic.in',          password='prosonic123', department='Operations'),
-    dict(username='amol',     name='Amol Panse',              role='admin',   email='amol.panse@prosonic.in',   password='prosonic123', department='Management'),
-]
-
-def seed_users():
-    db = SessionLocal()
-    if db.query(User).count() == 0:
-        for u in REAL_USERS:
-            db.add(User(**u))
-        db.commit()
-    db.close()
-seed_users()
+# --- In-memory users dictionary (no database) ---
+users = {
+    'monali':   {'password': 'prosonic123', 'role': 'member',  'name': 'Monali Joshi',          'email': 'acc.prosonic@gmail.com',   'department': 'Accounts'},
+    'jaywant':  {'password': 'prosonic123', 'role': 'manager', 'name': 'Jaywant Khese',         'email': 'trc@prosonic.in',          'department': 'Repair'},
+    'mandar':   {'password': 'prosonic123', 'role': 'manager', 'name': 'Mandar Tembe',          'email': 'sales@prosonic.in',        'department': 'Purchase & Logistics'},
+    'abhishek': {'password': 'prosonic123', 'role': 'admin',   'name': 'Abhishek Tandanlikar',  'email': 'sm@prosonic.in',           'department': 'IT'},
+    'divya':    {'password': 'prosonic123', 'role': 'member',  'name': 'Divya Jori',            'email': 'hr@prosonic.in',           'department': 'HR'},
+    'nayan':    {'password': 'prosonic123', 'role': 'member',  'name': 'Nayan Ahir',            'email': 'nayanaahir50@gmail.com',   'department': 'Design'},
+    'archana':  {'password': 'prosonic123', 'role': 'manager', 'name': 'Archana Tatooskar',     'email': 'coo@prosonic.in',          'department': 'Operations'},
+    'amol':     {'password': 'prosonic123', 'role': 'admin',   'name': 'Amol Panse',            'email': 'amol.panse@prosonic.in',   'department': 'Management'},
+}
 
 # Enhanced Data storage with master data
 departments = {
@@ -301,16 +264,14 @@ def home():
         return redirect(url_for('login'))
     
     user = session['user']
-    db = SessionLocal()
-    user_data = db.query(User).filter_by(username=user).first()
-    db.close()
-    
-    if user_data.role == 'admin':
-        return redirect(url_for('admin_dashboard'))
-    elif user_data.role == 'manager':
-        return redirect(url_for('manager_dashboard'))
-    else:
-        return redirect(url_for('member_dashboard'))
+    if user in users:
+        if users[user]['role'] == 'admin':
+            return redirect(url_for('admin_dashboard'))
+        elif users[user]['role'] == 'manager':
+            return redirect(url_for('manager_dashboard'))
+        else:
+            return redirect(url_for('member_dashboard'))
+    return redirect(url_for('login'))
 
 @app.route('/health')
 def health_check():
@@ -322,14 +283,11 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        db = SessionLocal()
-        user = db.query(User).filter_by(username=username, password=password).first()
-        db.close()
-        if user:
-            session['user'] = user.username
-            if user.role == 'admin':
+        if username in users and users[username]['password'] == password:
+            session['user'] = username
+            if users[username]['role'] == 'admin':
                 return redirect(url_for('admin_dashboard'))
-            elif user.role == 'manager':
+            elif users[username]['role'] == 'manager':
                 return redirect(url_for('manager_dashboard'))
             else:
                 return redirect(url_for('member_dashboard'))
@@ -347,11 +305,11 @@ def admin_dashboard():
     if 'user' not in session:
         return redirect(url_for('login'))
     
-    db = SessionLocal()
-    user_data = db.query(User).filter_by(username=session['user']).first()
-    db.close()
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
 
-    if user_data.role != 'admin':
+    if users[user]['role'] != 'admin':
         return redirect(url_for('login'))
     
     # Get current month stats
@@ -384,14 +342,14 @@ def manager_dashboard():
     if 'user' not in session:
         return redirect(url_for('login'))
     
-    db = SessionLocal()
-    user_data = db.query(User).filter_by(username=session['user']).first()
-    db.close()
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
 
-    if user_data.role != 'manager':
+    if users[user]['role'] != 'manager':
         return redirect(url_for('login'))
     
-    manager = session['user']
+    manager = user
     team_tasks = [task for task in tasks if task.assigned_to in users[manager]['team']]
     
     # Employee-wise stats
@@ -424,14 +382,14 @@ def member_dashboard():
     if 'user' not in session:
         return redirect(url_for('login'))
     
-    db = SessionLocal()
-    user_data = db.query(User).filter_by(username=session['user']).first()
-    db.close()
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
 
-    if user_data.role != 'member':
+    if users[user]['role'] != 'member':
         return redirect(url_for('login'))
     
-    member = session['user']
+    member = user
     my_tasks = [task for task in tasks if task.assigned_to == member]
     
     # Date-wise task breakdown
@@ -445,7 +403,7 @@ def member_dashboard():
     
     return render_template('member_dashboard.html',
                          tasks=my_tasks,
-                         user_data=user_data,
+                         user_data=users[member],
                          date_wise_tasks=dict(date_wise_tasks),
                          personal_stats=personal_stats)
 
@@ -454,6 +412,10 @@ def create_task():
     if 'user' not in session:
         return redirect(url_for('login'))
     
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
     if request.method == 'POST':
         title = request.form['title']
         description = request.form['description']
@@ -467,7 +429,7 @@ def create_task():
             id=len(tasks) + 1,
             title=title,
             description=description,
-            assigned_by=session['user'],
+            assigned_by=user,
             assigned_to=assigned_to,
             timeline_days=timeline_days,
             priority=priority,
@@ -497,21 +459,17 @@ def create_task():
         return redirect(url_for('home'))
     
     # Get available team members based on user role
-    user = session['user']
-    db = SessionLocal()
-    user_data = db.query(User).filter_by(username=user).first()
-    db.close()
-    
-    if user_data.role == 'admin':
+    user_data = users[user]
+    if user_data['role'] == 'admin':
         available_members = [u for u in users if users[u]['role'] == 'member']
-    elif user_data.role == 'manager':
+    elif user_data['role'] == 'manager':
         available_members = user_data['team']
     else:
         available_members = []
     
     # Get available projects for user's department
     available_projects = {}
-    if user_data.role in ['admin', 'manager']:
+    if user_data['role'] in ['admin', 'manager']:
         dept = user_data['department']
         available_projects = {pid: pdata for pid, pdata in projects.items() if pdata['department'] == dept}
     
@@ -525,8 +483,12 @@ def accept_task(task_id):
     if 'user' not in session:
         return redirect(url_for('login'))
     
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
     task = next((t for t in tasks if t.id == task_id), None)
-    if task and task.assigned_to == session['user']:
+    if task and task.assigned_to == user:
         task.status = 'accepted'
         task.accepted_date = datetime.now()
         
@@ -535,7 +497,7 @@ def accept_task(task_id):
         manager_email = users[manager]['email']
         send_email(manager_email,
                   f'Task Accepted: {task.title}',
-                  f'Task "{task.title}" has been accepted by {users[session["user"]]["name"]}')
+                  f'Task "{task.title}" has been accepted by {users[user]["name"]}')
         
         flash('Task accepted successfully!')
     
@@ -546,14 +508,18 @@ def request_extension(task_id):
     if 'user' not in session:
         return redirect(url_for('login'))
     
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
     task = next((t for t in tasks if t.id == task_id), None)
-    if task and task.assigned_to == session['user']:
+    if task and task.assigned_to == user:
         extra_days = int(request.form['extra_days'])
         reason = request.form['reason']
         
         extension_request = {
             'task_id': task_id,
-            'requested_by': session['user'],
+            'requested_by': user,
             'extra_days': extra_days,
             'reason': reason,
             'request_date': datetime.now(),
@@ -578,6 +544,10 @@ def approve_extension(task_id, request_index):
     if 'user' not in session:
         return redirect(url_for('login'))
     
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
     task = next((t for t in tasks if t.id == task_id), None)
     if task and request_index < len(task.extension_requests):
         request = task.extension_requests[request_index]
@@ -599,6 +569,10 @@ def reject_extension(task_id, request_index):
     if 'user' not in session:
         return redirect(url_for('login'))
     
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
     task = next((t for t in tasks if t.id == task_id), None)
     if task and request_index < len(task.extension_requests):
         request = task.extension_requests[request_index]
@@ -619,8 +593,12 @@ def complete_task(task_id):
     if 'user' not in session:
         return redirect(url_for('login'))
     
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
     task = next((t for t in tasks if t.id == task_id), None)
-    if task and task.assigned_to == session['user']:
+    if task and task.assigned_to == user:
         task.status = 'completed'
         task.completion_date = datetime.now()
         
@@ -629,7 +607,7 @@ def complete_task(task_id):
         manager_email = users[manager]['email']
         send_email(manager_email,
                   f'Task Completed: {task.title}',
-                  f'Task "{task.title}" has been completed by {users[session["user"]]["name"]}. Please review and validate.')
+                  f'Task "{task.title}" has been completed by {users[user]["name"]}. Please review and validate.')
         
         flash('Task marked as completed!')
     
@@ -640,6 +618,10 @@ def validate_task(task_id):
     if 'user' not in session:
         return redirect(url_for('login'))
     
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
     task = next((t for t in tasks if t.id == task_id), None)
     if task:
         task.status = 'validated'
@@ -665,6 +647,10 @@ def reopen_task(task_id):
     if 'user' not in session:
         return redirect(url_for('login'))
     
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
     task = next((t for t in tasks if t.id == task_id), None)
     if task:
         task.status = 'reopened'
@@ -739,6 +725,13 @@ def monthly_report():
     if 'user' not in session:
         return redirect(url_for('login'))
     
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
+    if users[user]['role'] != 'admin':
+        return redirect(url_for('login'))
+
     year = int(request.args.get('year', datetime.now().year))
     month = int(request.args.get('month', datetime.now().month))
     
@@ -771,6 +764,13 @@ def employee_report():
     if 'user' not in session:
         return redirect(url_for('login'))
     
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
+    if users[user]['role'] != 'admin':
+        return redirect(url_for('login'))
+
     employee_id = request.args.get('employee_id')
     if employee_id and employee_id in users:
         employee_stats = get_employee_stats(employee_id)
@@ -796,6 +796,13 @@ def stage_wise_report():
     if 'user' not in session:
         return redirect(url_for('login'))
     
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
+    if users[user]['role'] != 'admin':
+        return redirect(url_for('login'))
+
     # Stage-wise breakdown
     stage_stats = {
         'pending': len([t for t in tasks if t.status == 'pending']),
@@ -824,6 +831,13 @@ def master_data_management():
     if 'user' not in session:
         return redirect(url_for('login'))
     
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
+    if users[user]['role'] != 'admin':
+        return redirect(url_for('login'))
+
     return render_template('admin/master_data.html',
                          departments=departments,
                          projects=projects,
@@ -836,6 +850,13 @@ def add_department():
     if 'user' not in session:
         return redirect(url_for('login'))
     
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
+    if users[user]['role'] != 'admin':
+        return redirect(url_for('login'))
+
     dept_id = request.form['dept_id']
     dept_name = request.form['dept_name']
     manager = request.form['manager']
@@ -853,6 +874,13 @@ def add_project():
     if 'user' not in session:
         return redirect(url_for('login'))
     
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
+    if users[user]['role'] != 'admin':
+        return redirect(url_for('login'))
+
     project_id = request.form['project_id']
     project_name = request.form['project_name']
     department = request.form['department']
@@ -874,6 +902,13 @@ def add_user():
     if 'user' not in session:
         return redirect(url_for('login'))
     
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
+    if users[user]['role'] != 'admin':
+        return redirect(url_for('login'))
+
     username = request.form['username']
     password = request.form['password']
     name = request.form['name']
@@ -901,14 +936,10 @@ def add_user():
 def debug_users():
     if 'user' not in session:
         return redirect(url_for('login'))
-    db = SessionLocal()
-    user = db.query(User).filter_by(username=session['user']).first()
-    if not user or user.role != 'admin':
-        db.close()
+    user = session['user']
+    if user not in users:
         return 'Unauthorized', 403
-    users = db.query(User).all()
-    db.close()
-    return '<br>'.join([f"{u.username} | {u.name} | {u.role} | {u.email}" for u in users])
+    return '<br>'.join([f"{u} | {users[u]['name']} | {users[u]['role']} | {users[u]['email']}" for u in users])
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)
