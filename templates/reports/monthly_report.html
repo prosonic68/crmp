@@ -225,9 +225,9 @@
             </div>
             <div class="stat-card">
                 <div class="stat-number completion-rate 
-                    {% if monthly_stats.completion_rate >= 90 %}completion-excellent
-                    {% elif monthly_stats.completion_rate >= 75 %}completion-good
-                    {% elif monthly_stats.completion_rate >= 60 %}completion-average
+                    {% if monthly_stats.completion_rate >= 80 %}completion-excellent
+                    {% elif monthly_stats.completion_rate >= 60 %}completion-good
+                    {% elif monthly_stats.completion_rate >= 40 %}completion-average
                     {% else %}completion-poor{% endif %}">
                     {{ monthly_stats.completion_rate }}%
                 </div>
@@ -278,9 +278,9 @@
                                 <td>{{ dept_data.pending }}</td>
                                 <td>{{ dept_data.in_progress }}</td>
                                 <td class="completion-rate 
-                                    {% if completion_rate >= 90 %}completion-excellent
-                                    {% elif completion_rate >= 75 %}completion-good
-                                    {% elif completion_rate >= 60 %}completion-average
+                                    {% if completion_rate >= 80 %}completion-excellent
+                                    {% elif completion_rate >= 60 %}completion-good
+                                    {% elif completion_rate >= 40 %}completion-average
                                     {% else %}completion-poor{% endif %}">
                                     {{ "%.1f"|format(completion_rate) }}%
                                 </td>

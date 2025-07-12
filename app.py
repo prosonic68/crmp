@@ -1,4 +1,3 @@
-print('app.py is running')
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from datetime import datetime, timedelta
 import json
@@ -61,7 +60,55 @@ users = {
     'user8': {'password': 'user123', 'role': 'member', 'name': 'Henry Copywriter', 'email': 'henry@company.com', 'department': 'MKT', 'manager': 'manager4'}
 }
 
-tasks = []
+# Sample tasks for demonstration
+tasks = [
+    Task(1, "Website Homepage Redesign", "Redesign the company homepage with modern UI/UX", "manager1", "user1", 7, "high", "DESIGN", "PROJ001", "IT"),
+    Task(2, "Database Optimization", "Optimize database queries for better performance", "manager1", "user2", 5, "medium", "DEV", "PROJ002", "IT"),
+    Task(3, "Employee Handbook Update", "Update employee handbook with new policies", "manager2", "user3", 10, "medium", "DOC", "PROJ003", "HR"),
+    Task(4, "Recruitment Portal Testing", "Test the new recruitment portal functionality", "manager2", "user4", 3, "high", "TEST", "PROJ003", "HR"),
+    Task(5, "Budget Report Generation", "Generate monthly budget reports for Q1", "manager3", "user5", 8, "high", "ANALYSIS", "PROJ004", "FIN"),
+    Task(6, "Financial Data Analysis", "Analyze financial data for quarterly review", "manager3", "user6", 6, "medium", "ANALYSIS", "PROJ004", "FIN"),
+    Task(7, "Marketing Campaign Design", "Design new marketing campaign materials", "manager4", "user7", 12, "high", "DESIGN", None, "MKT"),
+    Task(8, "Social Media Content", "Create social media content for the month", "manager4", "user8", 4, "medium", "PLANNING", None, "MKT")
+]
+
+# Set some tasks to different statuses for demonstration
+tasks[0].status = 'validated'
+tasks[0].accepted_date = datetime.now() - timedelta(days=5)
+tasks[0].completion_date = datetime.now() - timedelta(days=2)
+tasks[0].validation_date = datetime.now() - timedelta(days=1)
+tasks[0].kra_score = 92.5
+
+tasks[1].status = 'validated'
+tasks[1].accepted_date = datetime.now() - timedelta(days=3)
+tasks[1].completion_date = datetime.now() - timedelta(days=1)
+tasks[1].validation_date = datetime.now()
+tasks[1].kra_score = 87.3
+
+tasks[2].status = 'validated'
+tasks[2].accepted_date = datetime.now() - timedelta(days=2)
+tasks[2].completion_date = datetime.now()
+tasks[2].validation_date = datetime.now()
+tasks[2].kra_score = 89.1
+
+tasks[3].status = 'validated'
+tasks[3].accepted_date = datetime.now() - timedelta(days=4)
+tasks[3].completion_date = datetime.now() - timedelta(days=1)
+tasks[3].validation_date = datetime.now()
+tasks[3].kra_score = 88.0
+
+tasks[4].status = 'validated'
+tasks[4].accepted_date = datetime.now() - timedelta(days=6)
+tasks[4].completion_date = datetime.now() - timedelta(days=2)
+tasks[4].validation_date = datetime.now() - timedelta(days=1)
+tasks[4].kra_score = 95.2
+
+tasks[5].status = 'validated'
+tasks[5].accepted_date = datetime.now() - timedelta(days=4)
+tasks[5].completion_date = datetime.now() - timedelta(days=1)
+tasks[5].validation_date = datetime.now()
+tasks[5].kra_score = 91.8
+
 task_requests = []
 kra_scores = {}
 
@@ -199,6 +246,11 @@ def home():
         return redirect(url_for('manager_dashboard'))
     else:
         return redirect(url_for('member_dashboard'))
+
+@app.route('/health')
+def health_check():
+    """Health check endpoint for deployment verification"""
+    return jsonify({'status': 'healthy', 'message': 'Task Management System is running'})
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -722,4 +774,4 @@ def add_user():
     return redirect(url_for('master_data_management'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)
