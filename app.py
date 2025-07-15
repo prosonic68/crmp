@@ -175,7 +175,7 @@ def send_email(to_email, subject, body):
         
         server = smtplib.SMTP('smtp.prosonic.in', 587)
         server.starttls()
-        server.login('sm@prosonic.in', 'Abhishek9@')
+        server.login('sm@prosonic.in', 'admin')
         server.send_message(msg)
         server.quit()
         print(f"✅ Email sent to {to_email}: {subject}")
