@@ -14,6 +14,12 @@ class AIAssistant:
             api_key = "AIzaSyDigFJLH565HUg6OdqfgLHnU9Qh9KUnblQ"
             print("🔍 Debug: Using direct API key assignment")
         
+        # For production, disable AI if no valid API key
+        if not api_key or api_key == "your_api_key_here":
+            print("⚠️ Warning: No valid API key found, AI disabled")
+            self.enabled = False
+            return
+        
         print(f"🔍 Debug: API Key found: {'Yes' if api_key else 'No'}")
         print(f"🔍 Debug: API Key length: {len(api_key) if api_key else 0}")
         
@@ -56,7 +62,8 @@ class AIAssistant:
             response = self.model.generate_content(full_prompt)
             return response.text
         except Exception as e:
-            return f"Sorry, I encountered an error: {str(e)}"
+            print(f"AI Error: {str(e)}")
+            return f"Sorry, I encountered an error. Please try again later."
     
     def analyze_tasks(self, tasks, user_role):
         """Analyze user's tasks and provide insights"""

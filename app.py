@@ -7,7 +7,13 @@ from email.mime.multipart import MIMEMultipart
 import os
 import calendar
 from collections import defaultdict
-from ai_assistant import ai_assistant
+try:
+    from ai_assistant import ai_assistant
+    AI_AVAILABLE = True
+except Exception as e:
+    print(f"⚠️ AI Assistant not available: {e}")
+    AI_AVAILABLE = False
+    ai_assistant = None
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'  # Change this in production
@@ -326,7 +332,11 @@ def home():
 @app.route('/health')
 def health_check():
     """Health check endpoint for deployment verification"""
-    return jsonify({'status': 'healthy', 'message': 'Task Management System is running'})
+    return jsonify({
+        'status': 'healthy', 
+        'message': 'Task Management System is running',
+        'ai_available': AI_AVAILABLE if 'AI_AVAILABLE' in globals() else False
+    })
 
 @app.route('/simple')
 def simple_test():
@@ -1125,9 +1135,11 @@ def ai_chat():
     if user not in users:
         return redirect(url_for('login'))
     
+    ai_enabled = ai_assistant.enabled if ai_assistant else False
+    
     return render_template('ai_chat.html', 
                          user_data=users[user],
-                         ai_enabled=ai_assistant.enabled)
+                         ai_enabled=ai_enabled)
 
 @app.route('/ai/chat_message', methods=['POST'])
 def ai_chat_message():
@@ -1147,7 +1159,10 @@ def ai_chat_message():
     user_tasks = [task for task in tasks if task.assigned_to == user]
     
     # Get AI response
-    response = ai_assistant.chat_with_context(message, users[user], user_tasks)
+    if ai_assistant:
+        response = ai_assistant.chat_with_context(message, users[user], user_tasks)
+    else:
+        response = "AI Assistant is not available at the moment. Please try again later."
     
     return jsonify({
         'response': response,
