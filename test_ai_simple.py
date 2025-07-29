@@ -16,7 +16,7 @@ def test_ai_setup():
     try:
         # Configure Gemini
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
         # Test a simple response
         response = model.generate_content("Hello! Can you respond with 'AI is working!'?")

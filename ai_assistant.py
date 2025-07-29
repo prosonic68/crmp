@@ -23,7 +23,7 @@ class AIAssistant:
             return
         
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-pro')
+        self.model = genai.GenerativeModel('gemini-1.5-flash')
         self.enabled = True
         
         # System prompt for task management context
