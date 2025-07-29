@@ -10,11 +10,21 @@ from collections import defaultdict
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'  # Change this in production
-app.debug = True
+app.debug = False
+
+@app.errorhandler(500)
+def internal_error(error):
+    print(f"500 Error occurred: {error}")
+    return "Internal Server Error - Check console for details", 500
+
+@app.errorhandler(404)
+def not_found_error(error):
+    print(f"404 Error occurred: {error}")
+    return "Page not found", 404
 
 # --- Email Configuration ---
 EMAIL_CONFIG = {
-    'enabled': True,  # Set to True to enable real email sending
+    'enabled': False,  # Set to True to enable real email sending
     'provider': 'prosonic',  # 'gmail' or 'prosonic'
     'smtp_server': 'smtp.prosonic.in',
     'smtp_port': 587,
@@ -295,23 +305,46 @@ def get_employee_stats(employee_id):
 
 @app.route('/')
 def home():
-    if 'user' not in session:
+    try:
+        if 'user' not in session:
+            return redirect(url_for('login'))
+        
+        user = session['user']
+        if user in users:
+            if users[user]['role'] == 'admin':
+                return redirect(url_for('admin_dashboard'))
+            elif users[user]['role'] == 'manager':
+                return redirect(url_for('manager_dashboard'))
+            else:
+                return redirect(url_for('member_dashboard'))
         return redirect(url_for('login'))
-    
-    user = session['user']
-    if user in users:
-        if users[user]['role'] == 'admin':
-            return redirect(url_for('admin_dashboard'))
-        elif users[user]['role'] == 'manager':
-            return redirect(url_for('manager_dashboard'))
-        else:
-            return redirect(url_for('member_dashboard'))
-    return redirect(url_for('login'))
+    except Exception as e:
+        print(f"Error in home route: {e}")
+        return redirect(url_for('login'))
 
 @app.route('/health')
 def health_check():
     """Health check endpoint for deployment verification"""
     return jsonify({'status': 'healthy', 'message': 'Task Management System is running'})
+
+@app.route('/simple')
+def simple_test():
+    """Simple test route to check basic functionality"""
+    return "Hello! Flask is working correctly."
+
+@app.route('/minimal')
+def minimal_test():
+    """Minimal test route without any dependencies"""
+    try:
+        return "Minimal test successful!"
+    except Exception as e:
+        print(f"Error in minimal test: {e}")
+        return f"Error: {str(e)}"
+
+@app.route('/ping')
+def ping():
+    """Simple ping route to test if Flask is responding"""
+    return "PONG - Flask is working!"
 
 @app.route('/test')
 def test():
@@ -320,25 +353,58 @@ def test():
         'status': 'ok',
         'users_count': len(users),
         'tasks_count': len(tasks),
-        'departments_count': len(departments)
+        'departments_count': len(departments),
+        'available_users': list(users.keys())
     })
+
+@app.route('/login_test')
+def login_test():
+    """Debug page for login testing"""
+    return render_template('login_test.html',
+                         users_count=len(users),
+                         tasks_count=len(tasks),
+                         departments_count=len(departments))
+
+@app.route('/simple_login')
+def simple_login():
+    """Simple login page for testing"""
+    try:
+        return render_template('simple_login.html')
+    except Exception as e:
+        print(f"Error rendering simple login: {e}")
+        return f"Template error: {str(e)}"
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        if username in users and users[username]['password'] == password:
-            session['user'] = username
-            if users[username]['role'] == 'admin':
-                return redirect(url_for('admin_dashboard'))
-            elif users[username]['role'] == 'manager':
-                return redirect(url_for('manager_dashboard'))
+    try:
+        if request.method == 'POST':
+            username = request.form['username']
+            password = request.form['password']
+            print(f"Login attempt - Username: {username}, Password: {password}")
+            print(f"Available users: {list(users.keys())}")
+            
+            if username in users:
+                print(f"User found: {username}")
+                if users[username]['password'] == password:
+                    print(f"Password match for user: {username}")
+                    session['user'] = username
+                    if users[username]['role'] == 'admin':
+                        return redirect(url_for('admin_dashboard'))
+                    elif users[username]['role'] == 'manager':
+                        return redirect(url_for('manager_dashboard'))
+                    else:
+                        return redirect(url_for('member_dashboard'))
+                else:
+                    print(f"Password mismatch for user: {username}")
+                    flash('Invalid credentials. Please try again.')
             else:
-                return redirect(url_for('member_dashboard'))
-        else:
-            flash('Invalid credentials. Please try again.')
-    return render_template('login.html')
+                print(f"User not found: {username}")
+                flash('Invalid credentials. Please try again.')
+        return render_template('login.html')
+    except Exception as e:
+        print(f"Error in login route: {e}")
+        flash('An error occurred. Please try again.')
+        return render_template('login.html')
 
 @app.route('/logout')
 def logout():
@@ -424,33 +490,38 @@ def manager_dashboard():
 
 @app.route('/member/dashboard')
 def member_dashboard():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    
-    user = session['user']
-    if user not in users:
-        return redirect(url_for('login'))
+    try:
+        if 'user' not in session:
+            return redirect(url_for('login'))
+        
+        user = session['user']
+        if user not in users:
+            return redirect(url_for('login'))
 
-    if users[user]['role'] != 'member':
-        return redirect(url_for('login'))
-    
-    member = user
-    my_tasks = [task for task in tasks if task.assigned_to == member]
-    
-    # Date-wise task breakdown
-    date_wise_tasks = defaultdict(list)
-    for task in my_tasks:
-        date_key = task.created_date.strftime('%Y-%m-%d')
-        date_wise_tasks[date_key].append(task)
-    
-    # Personal stats
-    personal_stats = get_employee_stats(member)
-    
-    return render_template('member_dashboard.html',
-                         tasks=my_tasks,
-                         user_data=users[member],
-                         date_wise_tasks=dict(date_wise_tasks),
-                         personal_stats=personal_stats)
+        if users[user]['role'] != 'member':
+            return redirect(url_for('login'))
+        
+        member = user
+        my_tasks = [task for task in tasks if task.assigned_to == member]
+        
+        # Date-wise task breakdown
+        date_wise_tasks = defaultdict(list)
+        for task in my_tasks:
+            date_key = task.created_date.strftime('%Y-%m-%d')
+            date_wise_tasks[date_key].append(task)
+        
+        # Personal stats
+        personal_stats = get_employee_stats(member)
+        
+        return render_template('member_dashboard.html',
+                             tasks=my_tasks,
+                             user_data=users[member],
+                             date_wise_tasks=dict(date_wise_tasks),
+                             personal_stats=personal_stats,
+                             now=datetime.now())
+    except Exception as e:
+        print(f"Error in member dashboard: {e}")
+        return f"Error in member dashboard: {str(e)}", 500
 
 @app.route('/create_task', methods=['GET', 'POST'])
 def create_task():
@@ -1033,5 +1104,24 @@ def debug_users():
         return 'Unauthorized', 403
     return '<br>'.join([f"{u} | {users[u]['name']} | {users[u]['role']} | {users[u]['email']}" for u in users])
 
+@app.route('/debug/users_public')
+def debug_users_public():
+    """Public route to show all users for debugging (no auth required)"""
+    user_list = []
+    for username, user_data in users.items():
+        user_list.append(f"{username} | {user_data['name']} | {user_data['role']} | {user_data['email']}")
+    return '<br>'.join(user_list)
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)
+    print("Starting Flask application...")
+    print(f"Available routes: {[rule.rule for rule in app.url_map.iter_rules()]}")
+    print(f"Flask app name: {__name__}")
+    print(f"Current working directory: {os.getcwd()}")
+    try:
+        port = int(os.environ.get('PORT', 8080))
+        print(f"Starting Flask on port: {port}")
+        app.run(host='0.0.0.0', port=port, debug=False)
+    except Exception as e:
+        print(f"Error starting Flask app: {e}")
+        import traceback
+        traceback.print_exc()
