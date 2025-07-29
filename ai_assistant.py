@@ -1,18 +1,24 @@
 import google.generativeai as genai
 import os
 from datetime import datetime
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Note: Environment variables can be loaded manually if needed
 
 class AIAssistant:
     def __init__(self):
         # Configure Gemini API
         api_key = os.getenv('GEMINI_API_KEY')
+        
+        # If not found in environment, try direct assignment
         if not api_key:
-            print("⚠️ Warning: GEMINI_API_KEY not found in environment variables")
-            print("Please set your Gemini API key in .env file")
+            api_key = "AIzaSyDigFJLH565HUg6OdqfgLHnU9Qh9KUnblQ"
+            print("🔍 Debug: Using direct API key assignment")
+        
+        print(f"🔍 Debug: API Key found: {'Yes' if api_key else 'No'}")
+        print(f"🔍 Debug: API Key length: {len(api_key) if api_key else 0}")
+        
+        if not api_key:
+            print("⚠️ Warning: GEMINI_API_KEY not found")
             self.enabled = False
             return
         
