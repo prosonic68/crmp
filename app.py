@@ -10,6 +10,27 @@ from collections import defaultdict
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'  # Change this in production
+app.debug = True
+
+# --- Email Configuration ---
+EMAIL_CONFIG = {
+    'enabled': True,  # Set to True to enable real email sending
+    'provider': 'prosonic',  # 'gmail' or 'prosonic'
+    'smtp_server': 'smtp.prosonic.in',
+    'smtp_port': 587,
+    'username': 'sm@prosonic.in',
+    'password': 'Abhishek9@',
+    'from_email': 'sm@prosonic.in'
+}
+
+# Prosonic SMTP Configuration (if using company email)
+PROSONIC_EMAIL_CONFIG = {
+    'smtp_server': 'smtp.prosonic.in',
+    'smtp_port': 587,
+    'username': 'sm@prosonic.in',
+    'password': 'Abhishek9@',
+    'from_email': 'sm@prosonic.in'
+}
 
 # --- Task class must be defined before use ---
 class Task:
@@ -40,14 +61,15 @@ class Task:
 
 # --- In-memory users dictionary (no database) ---
 users = {
-    'monali':   {'password': 'prosonic123', 'role': 'member',  'name': 'Monali Joshi',          'email': 'acc.prosonic@gmail.com',   'department': 'Accounts'},
-    'jaywant':  {'password': 'prosonic123', 'role': 'manager', 'name': 'Jaywant Khese',         'email': 'trc@prosonic.in',          'department': 'Repair'},
-    'mandar':   {'password': 'prosonic123', 'role': 'manager', 'name': 'Mandar Tembe',          'email': 'sales@prosonic.in',        'department': 'Purchase & Logistics'},
-    'abhishek': {'password': 'prosonic123', 'role': 'admin',   'name': 'Abhishek Tandanlikar',  'email': 'sm@prosonic.in',           'department': 'IT'},
-    'divya':    {'password': 'prosonic123', 'role': 'member',  'name': 'Divya Jori',            'email': 'hr@prosonic.in',           'department': 'HR'},
-    'nayan':    {'password': 'prosonic123', 'role': 'member',  'name': 'Nayan Ahir',            'email': 'nayanaahir50@gmail.com',   'department': 'Design'},
-    'archana':  {'password': 'prosonic123', 'role': 'manager', 'name': 'Archana Tatooskar',     'email': 'coo@prosonic.in',          'department': 'Operations'},
-    'amol':     {'password': 'prosonic123', 'role': 'admin',   'name': 'Amol Panse',            'email': 'amol.panse@prosonic.in',   'department': 'Management'},
+    'monali':   {'password': 'prosonic123', 'role': 'member',  'name': 'Monali Joshi',          'email': 'acc.prosonic@gmail.com',   'department': 'Accounts', 'manager': 'jaywant'},
+    'jaywant':  {'password': 'prosonic123', 'role': 'manager', 'name': 'Jaywant Khese',         'email': 'trc@prosonic.in',          'department': 'Repair', 'team': ['monali']},
+    'mandar':   {'password': 'prosonic123', 'role': 'manager', 'name': 'Mandar Tembe',          'email': 'sales@prosonic.in',        'department': 'Purchase & Logistics', 'team': ['divya']},
+    'abhishek': {'password': 'prosonic123', 'role': 'admin',   'name': 'Abhishek Tandanlikar',  'email': 'sm@prosonic.in',           'department': 'IT', 'team': ['nayan']},
+    'divya':    {'password': 'prosonic123', 'role': 'member',  'name': 'Divya Jori',            'email': 'hr@prosonic.in',           'department': 'HR', 'manager': 'mandar'},
+    'nayan':    {'password': 'prosonic123', 'role': 'member',  'name': 'Nayan Ahir',            'email': 'nayanaahir50@gmail.com',   'department': 'Design', 'manager': 'abhishek'},
+    'archana':  {'password': 'prosonic123', 'role': 'manager', 'name': 'Archana Tatooskar',     'email': 'coo@prosonic.in',          'department': 'Operations', 'team': ['monali']},
+    'amol':     {'password': 'prosonic123', 'role': 'admin',   'name': 'Amol Panse',            'email': 'amol.panse@prosonic.in',   'department': 'Management', 'team': ['monali', 'divya']},
+    'admin':    {'password': 'admin',        'role': 'admin',   'name': 'System Administrator',  'email': 'admin@prosonic.in',        'department': 'IT', 'team': ['nayan', 'divya', 'monali']},
 }
 
 # Enhanced Data storage with master data
@@ -55,7 +77,13 @@ departments = {
     'IT': {'name': 'Information Technology', 'manager': 'abhishek'},
     'HR': {'name': 'Human Resources', 'manager': 'archana'},
     'FIN': {'name': 'Finance', 'manager': 'amol'},
-    'MKT': {'name': 'Marketing', 'manager': 'amol'}
+    'MKT': {'name': 'Marketing', 'manager': 'amol'},
+    'Accounts': {'name': 'Accounts', 'manager': 'jaywant'},
+    'Repair': {'name': 'Repair', 'manager': 'jaywant'},
+    'Purchase & Logistics': {'name': 'Purchase & Logistics', 'manager': 'mandar'},
+    'Design': {'name': 'Design', 'manager': 'abhishek'},
+    'Operations': {'name': 'Operations', 'manager': 'archana'},
+    'Management': {'name': 'Management', 'manager': 'amol'}
 }
 
 projects = {
@@ -85,14 +113,14 @@ kra_kpi = {
 
 # Sample tasks for demonstration
 tasks = [
-    Task(1, "Website Homepage Redesign", "Redesign the company homepage with modern UI/UX", "manager1", "user1", 7, "high", "DESIGN", "PROJ001", "IT"),
-    Task(2, "Database Optimization", "Optimize database queries for better performance", "manager1", "user2", 5, "medium", "DEV", "PROJ002", "IT"),
-    Task(3, "Employee Handbook Update", "Update employee handbook with new policies", "manager2", "user3", 10, "medium", "DOC", "PROJ003", "HR"),
-    Task(4, "Recruitment Portal Testing", "Test the new recruitment portal functionality", "manager2", "user4", 3, "high", "TEST", "PROJ003", "HR"),
-    Task(5, "Budget Report Generation", "Generate monthly budget reports for Q1", "manager3", "user5", 8, "high", "ANALYSIS", "PROJ004", "FIN"),
-    Task(6, "Financial Data Analysis", "Analyze financial data for quarterly review", "manager3", "user6", 6, "medium", "ANALYSIS", "PROJ004", "FIN"),
-    Task(7, "Marketing Campaign Design", "Design new marketing campaign materials", "manager4", "user7", 12, "high", "DESIGN", None, "MKT"),
-    Task(8, "Social Media Content", "Create social media content for the month", "manager4", "user8", 4, "medium", "PLANNING", None, "MKT")
+    Task(1, "Website Homepage Redesign", "Redesign the company homepage with modern UI/UX", "abhishek", "nayan", 7, "high", "DESIGN", "PROJ001", "IT"),
+    Task(2, "Database Optimization", "Optimize database queries for better performance", "abhishek", "nayan", 5, "medium", "DEV", "PROJ002", "IT"),
+    Task(3, "Employee Handbook Update", "Update employee handbook with new policies", "mandar", "divya", 10, "medium", "DOC", "PROJ003", "HR"),
+    Task(4, "Recruitment Portal Testing", "Test the new recruitment portal functionality", "mandar", "divya", 3, "high", "TEST", "PROJ003", "HR"),
+    Task(5, "Budget Report Generation", "Generate monthly budget reports for Q1", "amol", "monali", 8, "high", "ANALYSIS", "PROJ004", "FIN"),
+    Task(6, "Financial Data Analysis", "Analyze financial data for quarterly review", "amol", "monali", 6, "medium", "ANALYSIS", "PROJ004", "FIN"),
+    Task(7, "Marketing Campaign Design", "Design new marketing campaign materials", "archana", "nayan", 12, "high", "DESIGN", None, "MKT"),
+    Task(8, "Social Media Content", "Create social media content for the month", "archana", "divya", 4, "medium", "PLANNING", None, "MKT")
 ]
 
 # Set some tasks to different statuses for demonstration
@@ -136,10 +164,10 @@ task_requests = []
 kra_scores = {}
 
 def send_email(to_email, subject, body):
-    """Send email notification using Prosonic.in SMTP"""
+    """Send email notification using configured SMTP"""
     try:
         msg = MIMEMultipart()
-        msg['From'] = 'sm@prosonic.in'
+        msg['From'] = EMAIL_CONFIG['from_email']
         msg['To'] = to_email
         msg['Subject'] = f"[Prosonic Task Manager] {subject}"
         
@@ -173,12 +201,19 @@ def send_email(to_email, subject, body):
         
         msg.attach(MIMEText(html_body, 'html'))
         
-        server = smtplib.SMTP('smtp.prosonic.in', 587)
-        server.starttls()
-        server.login('sm@prosonic.in', 'Abhishek9@')
-        server.send_message(msg)
-        server.quit()
-        print(f"✅ Email sent to {to_email}: {subject}")
+        if EMAIL_CONFIG['enabled']:
+            # Send real email
+            server = smtplib.SMTP(EMAIL_CONFIG['smtp_server'], EMAIL_CONFIG['smtp_port'])
+            server.starttls()
+            server.login(EMAIL_CONFIG['username'], EMAIL_CONFIG['password'])
+            server.send_message(msg)
+            server.quit()
+            print(f"✅ Email sent to {to_email}: {subject}")
+        else:
+            # Just print for testing
+            print(f"📧 Email would be sent to {to_email}: {subject}")
+            print(f"📧 Email body: {body}")
+            
     except Exception as e:
         print(f"❌ Email sending failed: {e}")
 
@@ -277,6 +312,16 @@ def home():
 def health_check():
     """Health check endpoint for deployment verification"""
     return jsonify({'status': 'healthy', 'message': 'Task Management System is running'})
+
+@app.route('/test')
+def test():
+    """Simple test route to check if Flask is working"""
+    return jsonify({
+        'status': 'ok',
+        'users_count': len(users),
+        'tasks_count': len(tasks),
+        'departments_count': len(departments)
+    })
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -688,6 +733,53 @@ def send_daily_kra():
                   f'Your daily KRA score for {today}: {score:.2f}%')
     
     flash('Daily KRA scores sent to all team members!')
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/send_task_reminders')
+def send_task_reminders():
+    """Send reminders for pending and overdue tasks"""
+    if 'user' not in session or users[session['user']]['role'] != 'admin':
+        return redirect(url_for('login'))
+    
+    today = datetime.now()
+    reminders_sent = 0
+    
+    for task in tasks:
+        if task.status in ['pending', 'accepted', 'in_progress']:
+            # Check if task is due soon or overdue
+            days_until_due = (task.target_date - today).days
+            
+            if days_until_due <= 0:  # Overdue
+                subject = f'URGENT: Overdue Task - {task.title}'
+                body = f'''Task "{task.title}" is OVERDUE!
+                
+Due Date: {task.target_date.strftime('%Y-%m-%d')}
+Days Overdue: {abs(days_until_due)}
+Priority: {task.priority.upper()}
+
+Please complete this task immediately.
+
+Task Description: {task.description}'''
+                
+            elif days_until_due <= 2:  # Due soon
+                subject = f'Reminder: Task Due Soon - {task.title}'
+                body = f'''Task "{task.title}" is due in {days_until_due} day(s).
+                
+Due Date: {task.target_date.strftime('%Y-%m-%d')}
+Priority: {task.priority.upper()}
+
+Please ensure timely completion.
+
+Task Description: {task.description}'''
+            else:
+                continue
+            
+            # Send reminder to assigned user
+            assigned_user_email = users[task.assigned_to]['email']
+            send_email(assigned_user_email, subject, body)
+            reminders_sent += 1
+    
+    flash(f'Task reminders sent: {reminders_sent} emails')
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/test_email')
