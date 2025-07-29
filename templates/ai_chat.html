@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant - Prosonic Task Manager</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+        }
+        .header {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .chat-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            height: calc(100vh - 140px);
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .chat-header h2 {
+            margin: 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .ai-status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .ai-status.enabled {
+            background: #d4edda;
+            color: #155724;
+        }
+        .ai-status.disabled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .message.user {
+            flex-direction: row-reverse;
+        }
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+        .message.user .message-avatar {
+            background: #667eea;
+        }
+        .message.ai .message-avatar {
+            background: #28a745;
+        }
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 15px;
+            position: relative;
+        }
+        .message.user .message-content {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        .message.ai .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e9ecef;
+            border-bottom-left-radius: 5px;
+        }
+        .message-time {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid #e9ecef;
+            background: white;
+            border-radius: 0 0 15px 15px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+        }
+        .message-input:focus {
+            border-color: #667eea;
+        }
+        .send-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .send-btn:hover {
+            background: #5a6fd8;
+        }
+        .send-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .welcome-message {
+            text-align: center;
+            color: #666;
+            padding: 40px 20px;
+        }
+        .welcome-message h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .suggestion-btn {
+            background: #e9ecef;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #333;
+        }
+        .suggestion-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        .typing-indicator {
+            display: none;
+            padding: 12px 16px;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 15px;
+            border-bottom-left-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #666;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 AI Assistant</h1>
+        <div class="user-info">
+            <span>Welcome, {{ user_data.name }}</span>
+            <a href="{{ url_for('home') }}" class="back-btn">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>
+                🚀 Prosonic AI Assistant
+                <span class="ai-status {% if ai_enabled %}enabled{% else %}disabled{% endif %}">
+                    {% if ai_enabled %}🟢 AI Enabled{% else %}🔴 AI Disabled{% endif %}
+                </span>
+            </h2>
+            <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">
+                Ask me anything about task management, productivity, or work optimization!
+            </p>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <h3>👋 Hello {{ user_data.name }}!</h3>
+                <p>I'm your AI assistant for task management and productivity. How can I help you today?</p>
+                
+                <div class="suggestions">
+                    <button class="suggestion-btn" onclick="sendMessage('How can I improve my productivity?')">
+                        💡 Productivity Tips
+                    </button>
+                    <button class="suggestion-btn" onclick="sendMessage('Analyze my current tasks')">
+                        📊 Task Analysis
+                    </button>
+                    <button class="suggestion-btn" onclick="sendMessage('Help me prioritize my work')">
+                        ⚡ Priority Help
+                    </button>
+                    <button class="suggestion-btn" onclick="sendMessage('Time management strategies')">
+                        ⏰ Time Management
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+
+        <div class="chat-input">
+            <form id="chatForm" onsubmit="sendMessage(event)">
+                <div class="input-group">
+                    <input type="text" id="messageInput" class="message-input" 
+                           placeholder="Type your message here..." 
+                           {% if not ai_enabled %}disabled{% endif %}>
+                    <button type="submit" class="send-btn" id="sendBtn" 
+                            {% if not ai_enabled %}disabled{% endif %}>
+                        Send
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const chatForm = document.getElementById('chatForm');
+
+        function addMessage(content, isUser = false, timestamp = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = isUser ? '{{ user_data.name[0] }}' : 'AI';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.innerHTML = content.replace(/\n/g, '<br>');
+            
+            if (timestamp) {
+                const timeDiv = document.createElement('div');
+                timeDiv.className = 'message-time';
+                timeDiv.textContent = timestamp;
+                messageContent.appendChild(timeDiv);
+            }
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTyping() {
+            typingIndicator.style.display = 'block';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTyping() {
+            typingIndicator.style.display = 'none';
+        }
+
+        function sendMessage(messageOrEvent) {
+            let message = '';
+            
+            if (typeof messageOrEvent === 'string') {
+                message = messageOrEvent;
+            } else {
+                messageOrEvent.preventDefault();
+                message = messageInput.value.trim();
+            }
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, true, new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+            
+            // Clear input
+            messageInput.value = '';
+            
+            // Show typing indicator
+            showTyping();
+            
+            // Send to server
+            fetch('/ai/chat_message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `message=${encodeURIComponent(message)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideTyping();
+                if (data.error) {
+                    addMessage(`❌ Error: ${data.error}`, false);
+                } else {
+                    addMessage(data.response, false, data.timestamp);
+                }
+            })
+            .catch(error => {
+                hideTyping();
+                addMessage(`❌ Network error: ${error.message}`, false);
+            });
+        }
+
+        // Auto-focus input
+        messageInput.focus();
+    </script>
+</body>
+</html> 

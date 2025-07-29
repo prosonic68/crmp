@@ -7,6 +7,7 @@ from email.mime.multipart import MIMEMultipart
 import os
 import calendar
 from collections import defaultdict
+from ai_assistant import ai_assistant
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'  # Change this in production
@@ -1111,6 +1112,104 @@ def debug_users_public():
     for username, user_data in users.items():
         user_list.append(f"{username} | {user_data['name']} | {user_data['role']} | {user_data['email']}")
     return '<br>'.join(user_list)
+
+# --- AI Assistant Routes ---
+
+@app.route('/ai/chat')
+def ai_chat():
+    """AI Chat interface"""
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+    
+    return render_template('ai_chat.html', 
+                         user_data=users[user],
+                         ai_enabled=ai_assistant.enabled)
+
+@app.route('/ai/chat_message', methods=['POST'])
+def ai_chat_message():
+    """Handle AI chat messages"""
+    if 'user' not in session:
+        return jsonify({'error': 'Not authenticated'})
+    
+    user = session['user']
+    if user not in users:
+        return jsonify({'error': 'Invalid user'})
+    
+    message = request.form.get('message', '')
+    if not message:
+        return jsonify({'error': 'No message provided'})
+    
+    # Get user's tasks for context
+    user_tasks = [task for task in tasks if task.assigned_to == user]
+    
+    # Get AI response
+    response = ai_assistant.chat_with_context(message, users[user], user_tasks)
+    
+    return jsonify({
+        'response': response,
+        'timestamp': datetime.now().strftime('%H:%M')
+    })
+
+@app.route('/ai/analyze_tasks')
+def ai_analyze_tasks():
+    """AI task analysis"""
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+    
+    user_tasks = [task for task in tasks if task.assigned_to == user]
+    analysis = ai_assistant.analyze_tasks(user_tasks, users[user]['role'])
+    
+    return render_template('ai_analysis.html',
+                         analysis=analysis,
+                         user_data=users[user],
+                         tasks=user_tasks,
+                         ai_enabled=ai_assistant.enabled)
+
+@app.route('/ai/productivity_tips')
+def ai_productivity_tips():
+    """AI productivity tips"""
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+    
+    # Get user's personal stats
+    personal_stats = get_employee_stats(user)
+    tips = ai_assistant.get_productivity_tips(users[user]['role'], personal_stats)
+    
+    return render_template('ai_tips.html',
+                         tips=tips,
+                         user_data=users[user],
+                         personal_stats=personal_stats,
+                         ai_enabled=ai_assistant.enabled)
+
+@app.route('/ai/suggest_improvements', methods=['POST'])
+def ai_suggest_improvements():
+    """AI task improvement suggestions"""
+    if 'user' not in session:
+        return jsonify({'error': 'Not authenticated'})
+    
+    user = session['user']
+    if user not in users:
+        return jsonify({'error': 'Invalid user'})
+    
+    task_description = request.form.get('task_description', '')
+    if not task_description:
+        return jsonify({'error': 'No task description provided'})
+    
+    suggestions = ai_assistant.suggest_task_improvements(task_description, users[user]['role'])
+    
+    return jsonify({'suggestions': suggestions})
 
 if __name__ == '__main__':
     print("Starting Flask application...")

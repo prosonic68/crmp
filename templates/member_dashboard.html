@@ -314,6 +314,7 @@
         <h1>👤 <span style="color: #dc3545;">Prosonic</span> My Dashboard</h1>
         <div class="user-info">
             <span>Welcome, {{ user_data.name }}</span>
+            <a href="{{ url_for('ai_chat') }}" class="logout-btn" style="background: #17a2b8;">🤖 AI Assistant</a>
             <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
         </div>
     </div>
