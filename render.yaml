@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: prosonic-task-management
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.18
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_DEBUG
+        value: false
+      - key: EMAIL_ENABLED
+        value: false
+      - key: EMAIL_PROVIDER
+        value: prosonic
+      - key: SMTP_SERVER
+        value: smtp.prosonic.in
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USERNAME
+        value: sm@prosonic.in
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM_EMAIL
+        value: sm@prosonic.in
+      - key: GMAIL_SMTP_SERVER
+        value: smtp.gmail.com
+      - key: GMAIL_SMTP_PORT
+        value: 587
+      - key: GMAIL_USERNAME
+        sync: false
+      - key: GMAIL_PASSWORD
+        sync: false
+      - key: GMAIL_FROM_EMAIL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false 

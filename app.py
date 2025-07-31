@@ -16,8 +16,8 @@ except Exception as e:
     ai_assistant = None
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-here'  # Change this in production
-app.debug = False
+app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here-change-in-production')
+app.debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
 
 @app.errorhandler(500)
 def internal_error(error):
@@ -31,13 +31,13 @@ def not_found_error(error):
 
 # --- Email Configuration ---
 EMAIL_CONFIG = {
-    'enabled': False,  # Set to True to enable real email sending
-    'provider': 'prosonic',  # 'gmail' or 'prosonic'
-    'smtp_server': 'smtp.prosonic.in',
-    'smtp_port': 587,
-    'username': 'sm@prosonic.in',
-    'password': 'Abhishek9@',
-    'from_email': 'sm@prosonic.in'
+    'enabled': os.environ.get('EMAIL_ENABLED', 'False').lower() == 'true',
+    'provider': os.environ.get('EMAIL_PROVIDER', 'prosonic'),  # 'gmail' or 'prosonic'
+    'smtp_server': os.environ.get('SMTP_SERVER', 'smtp.prosonic.in'),
+    'smtp_port': int(os.environ.get('SMTP_PORT', '587')),
+    'username': os.environ.get('SMTP_USERNAME', 'sm@prosonic.in'),
+    'password': os.environ.get('SMTP_PASSWORD', 'Abhishek9@'),
+    'from_email': os.environ.get('SMTP_FROM_EMAIL', 'sm@prosonic.in')
 }
 
 # Prosonic SMTP Configuration (if using company email)
@@ -47,6 +47,15 @@ PROSONIC_EMAIL_CONFIG = {
     'username': 'sm@prosonic.in',
     'password': 'Abhishek9@',
     'from_email': 'sm@prosonic.in'
+}
+
+# Gmail SMTP Configuration (for Gmail users)
+GMAIL_EMAIL_CONFIG = {
+    'smtp_server': os.environ.get('GMAIL_SMTP_SERVER', 'smtp.gmail.com'),
+    'smtp_port': int(os.environ.get('GMAIL_SMTP_PORT', '587')),
+    'username': os.environ.get('GMAIL_USERNAME', 'your-gmail@gmail.com'),
+    'password': os.environ.get('GMAIL_PASSWORD', 'your-app-password'),
+    'from_email': os.environ.get('GMAIL_FROM_EMAIL', 'your-gmail@gmail.com')
 }
 
 # --- Task class must be defined before use ---
@@ -80,12 +89,12 @@ class Task:
 users = {
     'monali':   {'password': 'prosonic123', 'role': 'member',  'name': 'Monali Joshi',          'email': 'acc.prosonic@gmail.com',   'department': 'Accounts', 'manager': 'jaywant'},
     'jaywant':  {'password': 'prosonic123', 'role': 'manager', 'name': 'Jaywant Khese',         'email': 'trc@prosonic.in',          'department': 'Repair', 'team': ['monali']},
-    'mandar':   {'password': 'prosonic123', 'role': 'manager', 'name': 'Mandar Tembe',          'email': 'sales@prosonic.in',        'department': 'Purchase & Logistics', 'team': ['divya']},
-    'abhishek': {'password': 'prosonic123', 'role': 'admin',   'name': 'Abhishek Tandanlikar',  'email': 'sm@prosonic.in',           'department': 'IT', 'team': ['nayan']},
-    'divya':    {'password': 'prosonic123', 'role': 'member',  'name': 'Divya Jori',            'email': 'hr@prosonic.in',           'department': 'HR', 'manager': 'mandar'},
+    'mandar':   {'password': 'prosonic123', 'role': 'manager', 'name': 'Mandar Tembe',          'email': 'mandar.tembe64@gmail.com', 'department': 'Purchase & Logistics', 'team': ['divya']},
+    'abhishek': {'password': 'prosonic123', 'role': 'admin',   'name': 'Abhishek Tandanlikar',  'email': 'tandalikarabhi@gmail.com', 'department': 'IT', 'team': ['nayan']},
+    'divya':    {'password': 'prosonic123', 'role': 'member',  'name': 'Divya Jori',            'email': 'divyajori.prosonic@gmail.com', 'department': 'HR', 'manager': 'mandar'},
     'nayan':    {'password': 'prosonic123', 'role': 'member',  'name': 'Nayan Ahir',            'email': 'nayanaahir50@gmail.com',   'department': 'Design', 'manager': 'abhishek'},
     'archana':  {'password': 'prosonic123', 'role': 'manager', 'name': 'Archana Tatooskar',     'email': 'coo@prosonic.in',          'department': 'Operations', 'team': ['monali']},
-    'amol':     {'password': 'prosonic123', 'role': 'admin',   'name': 'Amol Panse',            'email': 'amol.panse@prosonic.in',   'department': 'Management', 'team': ['monali', 'divya']},
+    'amol':     {'password': 'prosonic123', 'role': 'admin',   'name': 'Amol Panse',            'email': 'omkar.prosonic@gmail.com', 'department': 'Management', 'team': ['monali', 'divya']},
     'admin':    {'password': 'admin',        'role': 'admin',   'name': 'System Administrator',  'email': 'admin@prosonic.in',        'department': 'IT', 'team': ['nayan', 'divya', 'monali']},
 }
 
@@ -359,7 +368,9 @@ def ping():
 
 @app.route('/test')
 def test():
-    """Simple test route to check if Flask is working"""
+    """Simple test route to check if Flask is working - DISABLED IN PRODUCTION"""
+    if not app.debug:
+        return jsonify({'error': 'Test route disabled in production'}), 403
     return jsonify({
         'status': 'ok',
         'users_count': len(users),
@@ -370,7 +381,9 @@ def test():
 
 @app.route('/login_test')
 def login_test():
-    """Debug page for login testing"""
+    """Debug page for login testing - DISABLED IN PRODUCTION"""
+    if not app.debug:
+        return "Test page disabled in production", 403
     return render_template('login_test.html',
                          users_count=len(users),
                          tasks_count=len(tasks),
@@ -378,7 +391,9 @@ def login_test():
 
 @app.route('/simple_login')
 def simple_login():
-    """Simple login page for testing"""
+    """Simple login page for testing - DISABLED IN PRODUCTION"""
+    if not app.debug:
+        return "Test page disabled in production", 403
     try:
         return render_template('simple_login.html')
     except Exception as e:
@@ -894,6 +909,24 @@ Prosonic Task Management System''')
     
     return redirect(url_for('admin_dashboard'))
 
+@app.route('/email_info')
+def email_info():
+    """Display email information for all users"""
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    email_list = []
+    for username, user_data in users.items():
+        email_list.append({
+            'username': username,
+            'name': user_data['name'],
+            'email': user_data['email'],
+            'role': user_data['role'],
+            'department': user_data.get('department', 'N/A')
+        })
+    
+    return render_template('email_info.html', users=email_list)
+
 @app.route('/reports/monthly')
 def monthly_report():
     if 'user' not in session:
@@ -1108,6 +1141,9 @@ def add_user():
 
 @app.route('/debug/users')
 def debug_users():
+    """Debug route - DISABLED IN PRODUCTION"""
+    if not app.debug:
+        return "Debug route disabled in production", 403
     if 'user' not in session:
         return redirect(url_for('login'))
     user = session['user']
@@ -1117,7 +1153,9 @@ def debug_users():
 
 @app.route('/debug/users_public')
 def debug_users_public():
-    """Public route to show all users for debugging (no auth required)"""
+    """Public route to show all users for debugging (no auth required) - DISABLED IN PRODUCTION"""
+    if not app.debug:
+        return "Debug route disabled in production", 403
     user_list = []
     for username, user_data in users.items():
         user_list.append(f"{username} | {user_data['name']} | {user_data['role']} | {user_data['email']}")
@@ -1228,13 +1266,14 @@ def ai_suggest_improvements():
 
 if __name__ == '__main__':
     print("Starting Flask application...")
-    print(f"Available routes: {[rule.rule for rule in app.url_map.iter_rules()]}")
-    print(f"Flask app name: {__name__}")
+    print(f"Environment: {'PRODUCTION' if not app.debug else 'DEVELOPMENT'}")
+    print(f"Debug mode: {app.debug}")
+    print(f"Email enabled: {EMAIL_CONFIG['enabled']}")
     print(f"Current working directory: {os.getcwd()}")
     try:
         port = int(os.environ.get('PORT', 8080))
         print(f"Starting Flask on port: {port}")
-        app.run(host='0.0.0.0', port=port, debug=False)
+        app.run(host='0.0.0.0', port=port, debug=app.debug)
     except Exception as e:
         print(f"Error starting Flask app: {e}")
         import traceback

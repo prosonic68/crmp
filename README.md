@@ -92,13 +92,79 @@ A comprehensive Flask-based task management system with role-based access, KRA s
 4. **Configure WSGI file**
 5. **Deploy and access your live URL**
 
-## Production Considerations
+## Production Deployment
 
-- **Database**: Replace in-memory storage with PostgreSQL or MySQL
-- **Email**: Configure real SMTP settings for email notifications
-- **Security**: Change default passwords and use environment variables
-- **SSL**: Enable HTTPS for production deployments
-- **Monitoring**: Add logging and monitoring tools
+### Quick Production Setup
+
+1. **Run the production deployment script:**
+   ```bash
+   python deploy_production.py
+   ```
+
+2. **Update environment variables:**
+   ```bash
+   cp .env.production .env
+   # Edit .env with your actual credentials
+   ```
+
+3. **Choose deployment method:**
+
+### Option 1: Docker Deployment (Recommended)
+```bash
+# Build and run with Docker
+docker build -t prosonic-app .
+docker run -p 8080:8080 --env-file .env prosonic-app
+
+# Or use docker-compose
+docker-compose up -d
+```
+
+### Option 2: Direct Server Deployment
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Set environment variables
+export FLASK_DEBUG=false
+export SECRET_KEY=your-secret-key-here
+
+# Run with gunicorn
+gunicorn --bind 0.0.0.0:8080 --workers 4 wsgi:app
+```
+
+### Option 3: Cloud Platform Deployment
+- **Heroku**: `git push heroku main`
+- **Railway**: Connect GitHub repo
+- **Render**: Deploy as Web Service
+- **PythonAnywhere**: Upload and configure
+
+### Production Security Checklist
+- ✅ Debug mode disabled
+- ✅ Test routes secured
+- ✅ Environment variables configured
+- ✅ Secret key changed
+- ✅ Email credentials updated
+- ✅ HTTPS enabled (recommended)
+- ✅ Rate limiting configured
+- ✅ Security headers added
+
+### Environment Variables
+```bash
+# Required
+SECRET_KEY=your-super-secret-key
+FLASK_DEBUG=false
+
+# Email Configuration
+EMAIL_ENABLED=true
+EMAIL_PROVIDER=prosonic
+SMTP_SERVER=smtp.prosonic.in
+SMTP_USERNAME=sm@prosonic.in
+SMTP_PASSWORD=your_password
+SMTP_FROM_EMAIL=sm@prosonic.in
+
+# AI Configuration (Optional)
+GEMINI_API_KEY=your_api_key
+```
 
 ## System Architecture
 

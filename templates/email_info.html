@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Information - Prosonic Task Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .email-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .email-table th, .email-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .email-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        .email-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .email-table tr:hover {
+            background: #f0f0f0;
+        }
+        .gmail-email {
+            color: #d93025;
+            font-weight: bold;
+        }
+        .prosonic-email {
+            color: #1a73e8;
+            font-weight: bold;
+        }
+        .role-admin {
+            background: #dc3545;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .role-manager {
+            background: #fd7e14;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .role-member {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .back-link {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        .back-link a:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📧 Email Information</h1>
+            <p>Prosonic Task Manager - User Email Directory</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number">{{ users|length }}</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ users|selectattr('email', 'search', '@gmail.com')|list|length }}</div>
+                <div class="stat-label">Gmail Users</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ users|selectattr('email', 'search', '@prosonic.in')|list|length }}</div>
+                <div class="stat-label">Prosonic Users</div>
+            </div>
+        </div>
+
+        <table class="email-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Name</th>
+                    <th>Email Address</th>
+                    <th>Role</th>
+                    <th>Department</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td><strong>{{ user.username }}</strong></td>
+                    <td>{{ user.name }}</td>
+                    <td>
+                        {% if '@gmail.com' in user.email %}
+                            <span class="gmail-email">{{ user.email }}</span>
+                        {% else %}
+                            <span class="prosonic-email">{{ user.email }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.role == 'admin' %}
+                            <span class="role-admin">{{ user.role|title }}</span>
+                        {% elif user.role == 'manager' %}
+                            <span class="role-manager">{{ user.role|title }}</span>
+                        {% else %}
+                            <span class="role-member">{{ user.role|title }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.department }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="back-link">
+            <a href="/admin/dashboard">← Back to Admin Dashboard</a>
+        </div>
+    </div>
+</body>
+</html> 
