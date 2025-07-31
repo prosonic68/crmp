@@ -1264,6 +1264,77 @@ def ai_suggest_improvements():
     
     return jsonify({'suggestions': suggestions})
 
+@app.route('/admin/view_member/<username>')
+def admin_view_member(username):
+    """Admin can view any member's dashboard"""
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
+    if users[user]['role'] != 'admin':
+        return redirect(url_for('login'))
+    
+    if username not in users:
+        flash('User not found', 'error')
+        return redirect(url_for('admin_dashboard'))
+    
+    target_user = users[username]
+    if target_user['role'] not in ['member', 'manager']:
+        flash('Can only view member and manager dashboards', 'error')
+        return redirect(url_for('admin_dashboard'))
+    
+    # Get tasks for the target user
+    user_tasks = [task for task in tasks if task.assigned_to == username]
+    
+    # Get user stats
+    user_stats = get_employee_stats(username)
+    
+    # Date-wise task breakdown
+    date_wise_tasks = defaultdict(list)
+    for task in user_tasks:
+        date_key = task.created_date.strftime('%Y-%m-%d')
+        date_wise_tasks[date_key].append(task)
+    
+    return render_template('member_dashboard.html',
+                         tasks=user_tasks,
+                         user=target_user,
+                         users=users,
+                         user_stats=user_stats,
+                         date_wise_tasks=date_wise_tasks,
+                         is_admin_view=True)
+
+@app.route('/admin/task_details/<int:task_id>')
+def admin_task_details(task_id):
+    """Admin can view detailed task information"""
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
+    if users[user]['role'] != 'admin':
+        return redirect(url_for('login'))
+    
+    # Find the task
+    task = None
+    for t in tasks:
+        if t.id == task_id:
+            task = t
+            break
+    
+    if not task:
+        flash('Task not found', 'error')
+        return redirect(url_for('admin_dashboard'))
+    
+    return render_template('task_details.html',
+                         task=task,
+                         users=users,
+                         is_admin_view=True)
+
 if __name__ == '__main__':
     print("Starting Flask application...")
     print(f"Environment: {'PRODUCTION' if not app.debug else 'DEVELOPMENT'}")

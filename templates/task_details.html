@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Details - Prosonic Task Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .task-header {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .task-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .task-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+        }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-accepted {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .status-in_progress {
+            background: #cce5ff;
+            color: #004085;
+        }
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-validated {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+        .status-reopened {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .priority-high {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .priority-medium {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        .priority-low {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .task-description {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            line-height: 1.6;
+            color: #333;
+        }
+        .task-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .task-section {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: 500;
+            color: #666;
+        }
+        .info-value {
+            color: #333;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+        .timeline {
+            margin: 20px 0;
+        }
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 0;
+            border-left: 2px solid #e9ecef;
+            padding-left: 20px;
+            position: relative;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 15px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #667eea;
+        }
+        .timeline-item.completed::before {
+            background: #28a745;
+        }
+        .timeline-date {
+            font-size: 12px;
+            color: #666;
+            min-width: 100px;
+        }
+        .timeline-content {
+            flex: 1;
+        }
+        .timeline-title {
+            font-weight: 500;
+            color: #333;
+        }
+        .timeline-description {
+            font-size: 12px;
+            color: #666;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .media-section {
+            margin-top: 20px;
+        }
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .media-item {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .media-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        .media-item .file-icon {
+            width: 100%;
+            height: 150px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #667eea;
+        }
+        .kra-score {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .kra-excellent { color: #28a745; }
+        .kra-good { color: #17a2b8; }
+        .kra-average { color: #ffc107; }
+        .kra-poor { color: #dc3545; }
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        .flash-message {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .flash-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 <span style="color: #dc3545;">Prosonic</span> Task Manager</h1>
+        <div class="user-info">
+            <span>Task Details</span>
+            {% if is_admin_view %}
+                <a href="{{ url_for('admin_dashboard') }}" class="logout-btn">← Back to Admin Dashboard</a>
+            {% else %}
+                <a href="{{ url_for('member_dashboard') }}" class="logout-btn">← Back to Dashboard</a>
+            {% endif %}
+            <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="flash-message">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Task Header -->
+        <div class="task-header">
+            <h1 class="task-title">{{ task.title }}</h1>
+            <div class="task-meta">
+                <div class="meta-item">
+                    <i class="fas fa-hashtag"></i>
+                    <span>ID: {{ task.id }}</span>
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-user"></i>
+                    <span>Assigned to: {{ users[task.assigned_to]['name'] }}</span>
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>Created: {{ task.created_date.strftime('%Y-%m-%d') }}</span>
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-flag"></i>
+                    <span class="priority-{{ task.priority }}">{{ task.priority|title }}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="status-badge status-{{ task.status }}">
+                        {{ task.status|title }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="task-description">
+                <strong>Description:</strong><br>
+                {{ task.description }}
+            </div>
+        </div>
+
+        <!-- Task Details Grid -->
+        <div class="task-grid">
+            <!-- Task Information -->
+            <div class="task-section">
+                <h3 class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    Task Information
+                </h3>
+                <div class="info-row">
+                    <span class="info-label">Category:</span>
+                    <span class="info-value">{{ task.category }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Department:</span>
+                    <span class="info-value">{{ task.department or 'Not specified' }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Project:</span>
+                    <span class="info-value">
+                        {% if task.project_id and task.project_id in projects %}
+                            {{ projects[task.project_id]['name'] }}
+                        {% else %}
+                            No project
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Timeline:</span>
+                    <span class="info-value">{{ (task.target_date - task.created_date).days }} days</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Target Date:</span>
+                    <span class="info-value">{{ task.target_date.strftime('%Y-%m-%d') }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Review Date:</span>
+                    <span class="info-value">{{ task.review_date.strftime('%Y-%m-%d') }}</span>
+                </div>
+            </div>
+
+            <!-- Progress & Performance -->
+            <div class="task-section">
+                <h3 class="section-title">
+                    <i class="fas fa-chart-line"></i>
+                    Progress & Performance
+                </h3>
+                <div class="info-row">
+                    <span class="info-label">Progress:</span>
+                    <span class="info-value">
+                        {% set progress = 0 %}
+                        {% if task.status == 'pending' %}
+                            {% set progress = 0 %}
+                        {% elif task.status == 'accepted' %}
+                            {% set progress = 25 %}
+                        {% elif task.status == 'in_progress' %}
+                            {% set progress = 50 %}
+                        {% elif task.status == 'completed' %}
+                            {% set progress = 75 %}
+                        {% elif task.status == 'validated' %}
+                            {% set progress = 100 %}
+                        {% endif %}
+                        {{ progress }}%
+                    </span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ progress }}%"></div>
+                </div>
+                
+                {% if task.kra_score > 0 %}
+                    <div class="info-row">
+                        <span class="info-label">KRA Score:</span>
+                        <span class="info-value">
+                            <span class="kra-score 
+                                {% if task.kra_score >= 80 %}kra-excellent
+                                {% elif task.kra_score >= 60 %}kra-good
+                                {% elif task.kra_score >= 40 %}kra-average
+                                {% else %}kra-poor{% endif %}">
+                                {{ task.kra_score }}%
+                            </span>
+                        </span>
+                    </div>
+                {% endif %}
+                
+                <div class="info-row">
+                    <span class="info-label">Quality Score:</span>
+                    <span class="info-value">{{ task.quality_score or 'Not rated' }}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">Collaboration Score:</span>
+                    <span class="info-value">{{ task.collaboration_score or 'Not rated' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Timeline -->
+        <div class="task-section">
+            <h3 class="section-title">
+                <i class="fas fa-clock"></i>
+                Task Timeline
+            </h3>
+            <div class="timeline">
+                <div class="timeline-item completed">
+                    <div class="timeline-date">{{ task.created_date.strftime('%Y-%m-%d') }}</div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Task Created</div>
+                        <div class="timeline-description">Task assigned to {{ users[task.assigned_to]['name'] }}</div>
+                    </div>
+                </div>
+                
+                {% if task.accepted_date %}
+                    <div class="timeline-item completed">
+                        <div class="timeline-date">{{ task.accepted_date.strftime('%Y-%m-%d') }}</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Task Accepted</div>
+                            <div class="timeline-description">Work started on the task</div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if task.completion_date %}
+                    <div class="timeline-item completed">
+                        <div class="timeline-date">{{ task.completion_date.strftime('%Y-%m-%d') }}</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Task Completed</div>
+                            <div class="timeline-description">Work finished, waiting for validation</div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if task.validation_date %}
+                    <div class="timeline-item completed">
+                        <div class="timeline-date">{{ task.validation_date.strftime('%Y-%m-%d') }}</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">Task Validated</div>
+                            <div class="timeline-description">Task approved and closed</div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="timeline-item">
+                    <div class="timeline-date">{{ task.target_date.strftime('%Y-%m-%d') }}</div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Target Deadline</div>
+                        <div class="timeline-description">Expected completion date</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="task-section">
+            <h3 class="section-title">
+                <i class="fas fa-cogs"></i>
+                Actions
+            </h3>
+            <div class="action-buttons">
+                {% if task.status == 'pending' %}
+                    <a href="{{ url_for('accept_task', task_id=task.id) }}" class="btn btn-success">
+                        <i class="fas fa-check"></i> Accept Task
+                    </a>
+                {% endif %}
+                
+                {% if task.status == 'accepted' or task.status == 'in_progress' %}
+                    <a href="{{ url_for('complete_task', task_id=task.id) }}" class="btn btn-success">
+                        <i class="fas fa-flag-checkered"></i> Complete Task
+                    </a>
+                {% endif %}
+                
+                {% if task.status == 'completed' %}
+                    <a href="{{ url_for('validate_task', task_id=task.id) }}" class="btn btn-success">
+                        <i class="fas fa-check-double"></i> Validate Task
+                    </a>
+                    <a href="{{ url_for('reopen_task', task_id=task.id) }}" class="btn btn-warning">
+                        <i class="fas fa-redo"></i> Reopen Task
+                    </a>
+                {% endif %}
+                
+                {% if task.status == 'validated' %}
+                    <a href="{{ url_for('reopen_task', task_id=task.id) }}" class="btn btn-warning">
+                        <i class="fas fa-redo"></i> Reopen Task
+                    </a>
+                {% endif %}
+                
+                <button class="btn btn-secondary" onclick="requestExtension()">
+                    <i class="fas fa-clock"></i> Request Extension
+                </button>
+                
+                <button class="btn btn-secondary" onclick="addMedia()">
+                    <i class="fas fa-camera"></i> Add Media
+                </button>
+            </div>
+        </div>
+
+        <!-- Media Section -->
+        {% if task.media_files %}
+            <div class="task-section">
+                <h3 class="section-title">
+                    <i class="fas fa-camera"></i>
+                    Attachments & Media
+                </h3>
+                <div class="media-grid">
+                    {% for media in task.media_files %}
+                        <div class="media-item">
+                            {% if media.type == 'image' %}
+                                <img src="{{ media.url }}" alt="{{ media.name }}">
+                            {% else %}
+                                <div class="file-icon">
+                                    <i class="fas fa-file"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function requestExtension() {
+            const days = prompt('Enter number of days for extension:');
+            if (days && !isNaN(days)) {
+                // This would submit the extension request
+                alert(`Extension request submitted for ${days} days`);
+            }
+        }
+        
+        function addMedia() {
+            // This would open media upload modal
+            alert('Media upload feature coming soon!');
+        }
+    </script>
+</body>
+</html> 

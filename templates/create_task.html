@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Task - Enterprise Task Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -38,7 +39,7 @@
             text-decoration: none;
         }
         .container {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -53,6 +54,9 @@
             background: #f8f9fa;
             padding: 20px;
             border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .section-header h2 {
             margin: 0;
@@ -102,12 +106,31 @@
             border: none;
             border-radius: 8px;
             font-size: 16px;
-            font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: all 0.3s ease;
         }
         .btn:hover {
             background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
         }
         .btn-secondary {
             background: #6c757d;
@@ -115,48 +138,229 @@
         .btn-secondary:hover {
             background: #5a6268;
         }
+        .media-section {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+            transition: border-color 0.3s ease;
+            background: #f8f9fa;
+        }
+        .media-section:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+        .media-section.dragover {
+            border-color: #667eea;
+            background: #e8f0ff;
+        }
+        .media-upload-icon {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        .media-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .media-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .media-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+        .media-item .file-icon {
+            width: 100%;
+            height: 120px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #667eea;
+        }
+        .media-item .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .media-item .remove-btn:hover {
+            background: #dc3545;
+        }
+        .priority-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .priority-btn {
+            padding: 8px 16px;
+            border: 2px solid #e1e5e9;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        .priority-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+        .priority-btn.priority-high.active {
+            border-color: #dc3545;
+            background: #dc3545;
+        }
+        .priority-btn.priority-medium.active {
+            border-color: #ffc107;
+            background: #ffc107;
+            color: #212529;
+        }
+        .priority-btn.priority-low.active {
+            border-color: #28a745;
+            background: #28a745;
+        }
+        .category-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .category-tag {
+            padding: 6px 12px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+        .category-tag.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .timeline-slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+        .timeline-value {
+            text-align: center;
+            font-weight: 600;
+            color: #667eea;
+            margin-top: 5px;
+        }
+        .assignee-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .assignee-card {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .assignee-card:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+        .assignee-card.selected {
+            border-color: #667eea;
+            background: #e8f0ff;
+        }
+        .assignee-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: bold;
+        }
+        .assignee-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .assignee-role {
+            font-size: 12px;
+            color: #666;
+        }
         .form-actions {
             display: flex;
             gap: 15px;
             justify-content: flex-end;
             margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
         }
-        .priority-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 8px;
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background-color: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
         }
-        .priority-high {
-            background: #dc3545;
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
         }
-        .priority-medium {
-            background: #ffc107;
-        }
-        .priority-low {
-            background: #28a745;
-        }
-        .timeline-preview {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-        .timeline-preview h4 {
-            margin: 0 0 10px 0;
-            color: #333;
-        }
-        .timeline-item {
+        .form-steps {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
+            margin-bottom: 30px;
         }
-        .timeline-item:last-child {
-            border-bottom: none;
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            position: relative;
+        }
+        .step.active {
+            color: #667eea;
+            font-weight: 600;
+        }
+        .step.completed {
+            color: #28a745;
+        }
+        .step::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -50%;
+            width: 100%;
+            height: 2px;
+            background: #e9ecef;
+            z-index: -1;
+        }
+        .step:last-child::after {
+            display: none;
+        }
+        .step.completed::after {
+            background: #28a745;
         }
         .flash-messages {
             margin-bottom: 20px;
@@ -169,13 +373,19 @@
             color: #155724;
             border: 1px solid #c3e6cb;
         }
+        .flash-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>📝 Create New Task</h1>
+        <h1>🚀 <span style="color: #dc3545;">Prosonic</span> Task Manager</h1>
         <div class="user-info">
-            <a href="{{ url_for('home') }}" class="logout-btn">Back to Dashboard</a>
+            <span>Create New Task</span>
+            <a href="{{ url_for('admin_dashboard') }}" class="logout-btn">← Back to Dashboard</a>
             <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
         </div>
     </div>
@@ -191,145 +401,439 @@
             {% endif %}
         {% endwith %}
 
-        <form method="POST">
-            <div class="form-section">
+        <!-- Form Steps Progress -->
+        <div class="form-steps">
+            <div class="step active" id="step1">
+                <i class="fas fa-edit"></i>
+                <div>Basic Info</div>
+            </div>
+            <div class="step" id="step2">
+                <i class="fas fa-users"></i>
+                <div>Assignment</div>
+            </div>
+            <div class="step" id="step3">
+                <i class="fas fa-camera"></i>
+                <div>Media</div>
+            </div>
+            <div class="step" id="step4">
+                <i class="fas fa-check"></i>
+                <div>Review</div>
+            </div>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" id="taskForm">
+            <!-- Step 1: Basic Information -->
+            <div class="form-section" id="step1Content">
                 <div class="section-header">
-                    <h2>Task Details</h2>
+                    <h2><i class="fas fa-edit"></i> Basic Information</h2>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 25%"></div>
+                    </div>
                 </div>
                 <div class="section-content">
                     <div class="form-group">
-                        <label for="title">Task Title *</label>
-                        <input type="text" id="title" name="title" required 
-                               placeholder="Enter a clear, descriptive title for the task">
+                        <label for="title"><i class="fas fa-heading"></i> Task Title *</label>
+                        <input type="text" id="title" name="title" required placeholder="Enter task title...">
                     </div>
                     
                     <div class="form-group">
-                        <label for="description">Task Description *</label>
-                        <textarea id="description" name="description" required
-                                  placeholder="Provide detailed description of what needs to be accomplished, including any specific requirements, deliverables, or constraints"></textarea>
+                        <label for="description"><i class="fas fa-align-left"></i> Description *</label>
+                        <textarea id="description" name="description" required placeholder="Describe the task in detail..."></textarea>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="assigned_to">Assign To *</label>
-                            <select id="assigned_to" name="assigned_to" required>
-                                <option value="">Select team member</option>
-                                {% for member in available_members %}
-                                    <option value="{{ member }}">{{ member }}</option>
-                                {% endfor %}
+                            <label for="category"><i class="fas fa-tag"></i> Category</label>
+                            <select id="category" name="category">
+                                <option value="DEV">Development</option>
+                                <option value="DESIGN">Design</option>
+                                <option value="TESTING">Testing</option>
+                                <option value="DOCS">Documentation</option>
+                                <option value="MEETING">Meeting</option>
+                                <option value="OTHER">Other</option>
                             </select>
                         </div>
-                        
                         <div class="form-group">
-                            <label for="priority">Priority Level *</label>
-                            <select id="priority" name="priority" required>
-                                <option value="">Select priority</option>
-                                <option value="low">🟢 Low Priority</option>
-                                <option value="medium">🟡 Medium Priority</option>
-                                <option value="high">🔴 High Priority</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="category">Task Category *</label>
-                            <select id="category" name="category" required>
-                                <option value="">Select category</option>
-                                {% for category_id, category_name in task_categories.items() %}
-                                    <option value="{{ category_id }}">{{ category_name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="project_id">Project (Optional)</label>
-                            <select id="project_id" name="project_id">
-                                <option value="">No Project</option>
-                                {% for project_id, project_data in available_projects.items() %}
-                                    <option value="{{ project_id }}">{{ project_data.name }}</option>
-                                {% endfor %}
+                            <label for="department"><i class="fas fa-building"></i> Department</label>
+                            <select id="department" name="department">
+                                <option value="IT">IT</option>
+                                <option value="Design">Design</option>
+                                <option value="HR">HR</option>
+                                <option value="Accounts">Accounts</option>
+                                <option value="Operations">Operations</option>
+                                <option value="Management">Management</option>
                             </select>
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="timeline_days">Timeline (Days) *</label>
-                        <input type="number" id="timeline_days" name="timeline_days" required 
-                               min="1" max="365" placeholder="Enter number of days to complete the task">
-                        <small style="color: #666; font-size: 14px;">
-                            This will create a 4-phase roadmap with milestones at 25%, 50%, 75%, and 100% completion
-                        </small>
+                        <label><i class="fas fa-flag"></i> Priority</label>
+                        <div class="priority-buttons">
+                            <button type="button" class="priority-btn priority-low" data-priority="low">
+                                <i class="fas fa-arrow-down"></i> Low
+                            </button>
+                            <button type="button" class="priority-btn active" data-priority="medium">
+                                <i class="fas fa-minus"></i> Medium
+                            </button>
+                            <button type="button" class="priority-btn priority-high" data-priority="high">
+                                <i class="fas fa-arrow-up"></i> High
+                            </button>
+                        </div>
+                        <input type="hidden" id="priority" name="priority" value="medium">
                     </div>
                     
-                    <!-- Timeline Preview -->
-                    <div class="timeline-preview" id="timeline-preview" style="display: none;">
-                        <h4>📋 Task Roadmap Preview:</h4>
-                        <div id="timeline-items"></div>
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-alt"></i> Timeline (Days)</label>
+                        <input type="range" id="timeline" name="timeline_days" min="1" max="30" value="7" class="timeline-slider">
+                        <div class="timeline-value" id="timelineValue">7 days</div>
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Step 2: Assignment -->
+            <div class="form-section" id="step2Content" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-users"></i> Task Assignment</h2>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 50%"></div>
+                    </div>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label><i class="fas fa-user-plus"></i> Assign To</label>
+                        <div class="assignee-section">
+                            {% for username, user_data in users.items() %}
+                                {% if user_data.role in ['member', 'manager'] %}
+                                    <div class="assignee-card" data-username="{{ username }}">
+                                        <div class="assignee-avatar">
+                                            {{ user_data.name.split()[0][0] }}{{ user_data.name.split()[-1][0] if user_data.name.split()|length > 1 else '' }}
+                                        </div>
+                                        <div class="assignee-name">{{ user_data.name }}</div>
+                                        <div class="assignee-role">{{ user_data.role|title }}</div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" id="assigned_to" name="assigned_to" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="project_id"><i class="fas fa-project-diagram"></i> Project (Optional)</label>
+                        <select id="project_id" name="project_id">
+                            <option value="">No Project</option>
+                            {% for project in projects %}
+                                <option value="{{ project.id }}">{{ project.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Media Upload -->
+            <div class="form-section" id="step3Content" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-camera"></i> Media & Attachments</h2>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 75%"></div>
+                    </div>
+                </div>
+                <div class="section-content">
+                    <div class="media-section" id="mediaDropZone">
+                        <div class="media-upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h3>Upload Media & Attachments</h3>
+                        <p>Drag and drop files here or click to browse</p>
+                        <p style="font-size: 12px; color: #666;">
+                            Supported: Images, Videos, PDFs, Documents (Max 10MB each)
+                        </p>
+                        <input type="file" id="mediaFiles" name="media_files" multiple 
+                               accept="image/*,video/*,.pdf,.doc,.docx,.txt,.xlsx,.xls" 
+                               style="display: none;">
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('mediaFiles').click()">
+                            <i class="fas fa-folder-open"></i> Browse Files
+                        </button>
+                    </div>
+                    
+                    <div class="media-preview" id="mediaPreview"></div>
+                </div>
+            </div>
+
+            <!-- Step 4: Review -->
+            <div class="form-section" id="step4Content" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-check"></i> Review & Submit</h2>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="section-content">
+                    <div id="reviewContent">
+                        <!-- Review content will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
             <div class="form-actions">
-                <a href="{{ url_for('home') }}" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn">Create Task</button>
+                <button type="button" class="btn btn-secondary" id="prevBtn" onclick="previousStep()" style="display: none;">
+                    <i class="fas fa-arrow-left"></i> Previous
+                </button>
+                <button type="button" class="btn" id="nextBtn" onclick="nextStep()">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+                <button type="submit" class="btn btn-success" id="submitBtn" style="display: none;">
+                    <i class="fas fa-check"></i> Create Task
+                </button>
             </div>
         </form>
     </div>
 
     <script>
-        // Timeline preview functionality
-        const timelineInput = document.getElementById('timeline_days');
-        const timelinePreview = document.getElementById('timeline-preview');
-        const timelineItems = document.getElementById('timeline-items');
-        
-        timelineInput.addEventListener('input', function() {
-            const days = parseInt(this.value);
-            if (days > 0) {
-                timelinePreview.style.display = 'block';
-                
-                const today = new Date();
-                let html = '';
-                
-                for (let i = 1; i <= 4; i++) {
-                    const phaseDate = new Date(today);
-                    phaseDate.setDate(today.getDate() + Math.floor(days * i / 4));
-                    
-                    const dateStr = phaseDate.toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                    });
-                    
-                    html += `
-                        <div class="timeline-item">
-                            <span>Phase ${i}: Complete ${25 * i}% of the task</span>
-                            <span>${dateStr}</span>
+        let currentStep = 1;
+        let selectedFiles = [];
+        let selectedAssignee = null;
+
+        // Step navigation
+        function nextStep() {
+            if (currentStep < 4) {
+                if (validateCurrentStep()) {
+                    currentStep++;
+                    updateStepDisplay();
+                }
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateStepDisplay();
+            }
+        }
+
+        function updateStepDisplay() {
+            // Hide all step contents
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show current step content
+            document.getElementById(`step${currentStep}Content`).style.display = 'block';
+            
+            // Update step indicators
+            document.querySelectorAll('.step').forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+                if (index + 1 < currentStep) {
+                    step.classList.add('completed');
+                } else if (index + 1 === currentStep) {
+                    step.classList.add('active');
+                }
+            });
+            
+            // Update buttons
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            prevBtn.style.display = currentStep > 1 ? 'inline-block' : 'none';
+            nextBtn.style.display = currentStep < 4 ? 'inline-block' : 'none';
+            submitBtn.style.display = currentStep === 4 ? 'inline-block' : 'none';
+            
+            // Update progress bar
+            const progress = (currentStep / 4) * 100;
+            document.querySelectorAll('.progress-fill').forEach(fill => {
+                fill.style.width = `${progress}%`;
+            });
+            
+            // If on last step, populate review
+            if (currentStep === 4) {
+                populateReview();
+            }
+        }
+
+        function validateCurrentStep() {
+            switch(currentStep) {
+                case 1:
+                    const title = document.getElementById('title').value.trim();
+                    const description = document.getElementById('description').value.trim();
+                    if (!title || !description) {
+                        alert('Please fill in all required fields.');
+                        return false;
+                    }
+                    break;
+                case 2:
+                    if (!selectedAssignee) {
+                        alert('Please select an assignee.');
+                        return false;
+                    }
+                    break;
+                case 3:
+                    // Media upload is optional
+                    break;
+            }
+            return true;
+        }
+
+        function populateReview() {
+            const reviewContent = document.getElementById('reviewContent');
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const category = document.getElementById('category').value;
+            const department = document.getElementById('department').value;
+            const priority = document.getElementById('priority').value;
+            const timeline = document.getElementById('timeline').value;
+            
+            reviewContent.innerHTML = `
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="margin-top: 0;">Task Summary</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <strong>Title:</strong> ${title}
                         </div>
-                    `;
+                        <div>
+                            <strong>Category:</strong> ${category}
+                        </div>
+                        <div>
+                            <strong>Department:</strong> ${department}
+                        </div>
+                        <div>
+                            <strong>Priority:</strong> ${priority.charAt(0).toUpperCase() + priority.slice(1)}
+                        </div>
+                        <div>
+                            <strong>Timeline:</strong> ${timeline} days
+                        </div>
+                        <div>
+                            <strong>Assigned To:</strong> ${selectedAssignee ? users[selectedAssignee].name : 'Not selected'}
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <strong>Description:</strong>
+                        <p style="margin: 10px 0; color: #666;">${description}</p>
+                    </div>
+                    ${selectedFiles.length > 0 ? `
+                        <div style="margin-top: 15px;">
+                            <strong>Attachments:</strong> ${selectedFiles.length} file(s)
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // Priority buttons
+        document.querySelectorAll('.priority-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById('priority').value = this.getAttribute('data-priority');
+            });
+        });
+
+        // Timeline slider
+        document.getElementById('timeline').addEventListener('input', function() {
+            document.getElementById('timelineValue').textContent = this.value + ' days';
+        });
+
+        // Assignee selection
+        document.querySelectorAll('.assignee-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.assignee-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedAssignee = this.getAttribute('data-username');
+                document.getElementById('assigned_to').value = selectedAssignee;
+            });
+        });
+
+        // Media upload functionality
+        const mediaDropZone = document.getElementById('mediaDropZone');
+        const mediaFiles = document.getElementById('mediaFiles');
+        const mediaPreview = document.getElementById('mediaPreview');
+
+        // Drag and drop functionality
+        mediaDropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        mediaDropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+
+        mediaDropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            handleFiles(files);
+        });
+
+        mediaFiles.addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            handleFiles(files);
+        });
+
+        function handleFiles(files) {
+            files.forEach(file => {
+                if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                    alert(`File ${file.name} is too large. Maximum size is 10MB.`);
+                    return;
                 }
                 
-                timelineItems.innerHTML = html;
+                selectedFiles.push(file);
+                displayFile(file);
+            });
+        }
+
+        function displayFile(file) {
+            const mediaItem = document.createElement('div');
+            mediaItem.className = 'media-item';
+            
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    mediaItem.innerHTML = `
+                        <img src="${e.target.result}" alt="${file.name}">
+                        <button type="button" class="remove-btn" onclick="removeFile('${file.name}')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                };
+                reader.readAsDataURL(file);
             } else {
-                timelinePreview.style.display = 'none';
+                mediaItem.innerHTML = `
+                    <div class="file-icon">
+                        <i class="fas fa-file"></i>
+                    </div>
+                    <button type="button" class="remove-btn" onclick="removeFile('${file.name}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
             }
-        });
-        
-        // Priority indicator styling
-        const prioritySelect = document.getElementById('priority');
-        prioritySelect.addEventListener('change', function() {
-            const options = this.options;
-            for (let i = 0; i < options.length; i++) {
-                const option = options[i];
-                if (option.value === 'low') {
-                    option.innerHTML = '🟢 Low Priority';
-                } else if (option.value === 'medium') {
-                    option.innerHTML = '🟡 Medium Priority';
-                } else if (option.value === 'high') {
-                    option.innerHTML = '🔴 High Priority';
-                }
-            }
-        });
+            
+            mediaPreview.appendChild(mediaItem);
+        }
+
+        function removeFile(fileName) {
+            selectedFiles = selectedFiles.filter(file => file.name !== fileName);
+            updateMediaPreview();
+        }
+
+        function updateMediaPreview() {
+            mediaPreview.innerHTML = '';
+            selectedFiles.forEach(file => displayFile(file));
+        }
+
+        // Initialize step display
+        updateStepDisplay();
+
+        // Users data for review (this would come from the server)
+        const users = {
+            {% for username, user_data in users.items() %}
+                '{{ username }}': {
+                    name: '{{ user_data.name }}',
+                    role: '{{ user_data.role }}'
+                },
+            {% endfor %}
+        };
     </script>
 </body>
 </html> 
