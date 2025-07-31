@@ -504,7 +504,8 @@
                         <div class="assignee-section">
                             {% for username, user_data in users.items() %}
                                 {% if user_data.role in ['member', 'manager'] %}
-                                    <div class="assignee-card" data-username="{{ username }}">
+                                    <div class="assignee-card" data-username="{{ username }}" 
+                                         {% if username == pre_filled_assigned_to %}data-selected="true"{% endif %}>
                                         <div class="assignee-avatar">
                                             {{ user_data.name.split()[0][0] }}{{ user_data.name.split()[-1][0] if user_data.name.split()|length > 1 else '' }}
                                         </div>
@@ -514,7 +515,7 @@
                                 {% endif %}
                             {% endfor %}
                         </div>
-                        <input type="hidden" id="assigned_to" name="assigned_to" required>
+                        <input type="hidden" id="assigned_to" name="assigned_to" value="{{ pre_filled_assigned_to }}" required>
                     </div>
                     
                     <div class="form-group">
@@ -741,6 +742,13 @@
                 selectedAssignee = this.getAttribute('data-username');
                 document.getElementById('assigned_to').value = selectedAssignee;
             });
+            
+            // Pre-select if data-selected is true
+            if (card.getAttribute('data-selected') === 'true') {
+                card.classList.add('selected');
+                selectedAssignee = card.getAttribute('data-username');
+                document.getElementById('assigned_to').value = selectedAssignee;
+            }
         });
 
         // Media upload functionality

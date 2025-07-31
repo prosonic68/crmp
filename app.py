@@ -558,67 +558,70 @@ def create_task():
     if user not in users:
         return redirect(url_for('login'))
 
+    # Only admins and managers can create tasks
+    if users[user]['role'] not in ['admin', 'manager']:
+        flash('You do not have permission to create tasks', 'error')
+        return redirect(url_for('member_dashboard'))
+    
     if request.method == 'POST':
-        title = request.form['title']
-        description = request.form['description']
-        assigned_to = request.form['assigned_to']
-        timeline_days = int(request.form['timeline_days'])
-        priority = request.form['priority']
-        category = request.form['category']
-        project_id = request.form['project_id'] if request.form['project_id'] else None
+        title = request.form.get('title')
+        description = request.form.get('description')
+        assigned_to = request.form.get('assigned_to')
+        priority = request.form.get('priority')
+        target_date = request.form.get('target_date')
+        category = request.form.get('category')
+        department = request.form.get('department')
+        project = request.form.get('project')
         
-        task = Task(
+        if not all([title, description, assigned_to, priority, target_date]):
+            flash('All required fields must be filled', 'error')
+            return render_template('create_task.html', users=users, departments=departments, projects=projects)
+        
+        # Validate assigned_to based on user role
+        if users[user]['role'] == 'manager':
+            # Managers can only assign to their team members
+            if assigned_to not in users[user].get('team', []):
+                flash('You can only assign tasks to your team members', 'error')
+                return render_template('create_task.html', users=users, departments=departments, projects=projects)
+        elif users[user]['role'] == 'admin':
+            # Admins can assign to any member
+            if assigned_to not in users or users[assigned_to]['role'] != 'member':
+                flash('Invalid team member selected', 'error')
+                return render_template('create_task.html', users=users, departments=departments, projects=projects)
+        
+        try:
+            target_date = datetime.strptime(target_date, '%Y-%m-%d').date()
+        except ValueError:
+            flash('Invalid target date format', 'error')
+            return render_template('create_task.html', users=users, departments=departments, projects=projects)
+        
+        # Create new task
+        new_task = Task(
             id=len(tasks) + 1,
             title=title,
             description=description,
-            assigned_by=user,
             assigned_to=assigned_to,
-            timeline_days=timeline_days,
             priority=priority,
+            target_date=target_date,
             category=category,
-            project_id=project_id
+            department=department,
+            project=project,
+            created_date=datetime.now().date(),
+            status='pending'
         )
         
-        # Create roadmap
-        days_per_phase = timeline_days // 4
-        for i in range(4):
-            phase_date = task.created_date + timedelta(days=days_per_phase * (i + 1))
-            task.roadmap.append({
-                'phase': f'Phase {i+1}',
-                'date': phase_date.strftime('%Y-%m-%d'),
-                'description': f'Complete {25 * (i+1)}% of the task'
-            })
-        
-        tasks.append(task)
-        
-        # Send notification to assigned user
-        assigned_user = users[assigned_to]
-        send_email(assigned_user['email'], 
-                  f'New Task Assigned: {title}',
-                  f'You have been assigned a new task: {title}\nTimeline: {timeline_days} days\nPlease review and accept.')
-        
-        flash('Task created successfully!')
-        return redirect(url_for('home'))
+        tasks.append(new_task)
+        flash('Task created successfully!', 'success')
+        return redirect(url_for('admin_dashboard' if users[user]['role'] == 'admin' else 'manager_dashboard'))
     
-    # Get available team members based on user role
-    user_data = users[user]
-    if user_data['role'] == 'admin':
-        available_members = [u for u in users if users[u]['role'] == 'member']
-    elif user_data['role'] == 'manager':
-        available_members = user_data['team']
-    else:
-        available_members = []
-    
-    # Get available projects for user's department
-    available_projects = {}
-    if user_data['role'] in ['admin', 'manager']:
-        dept = user_data['department']
-        available_projects = {pid: pdata for pid, pdata in projects.items() if pdata['department'] == dept}
+    # Get pre-filled assigned_to from query parameter
+    pre_filled_assigned_to = request.args.get('assigned_to', '')
     
     return render_template('create_task.html', 
-                         available_members=available_members,
-                         available_projects=available_projects,
-                         task_categories=task_categories)
+                         users=users, 
+                         departments=departments, 
+                         projects=projects,
+                         pre_filled_assigned_to=pre_filled_assigned_to)
 
 @app.route('/accept_task/<int:task_id>')
 def accept_task(task_id):
@@ -1334,6 +1337,112 @@ def admin_task_details(task_id):
                          task=task,
                          users=users,
                          is_admin_view=True)
+
+@app.route('/member/task_details/<int:task_id>')
+def member_task_details(task_id):
+    """Member can view detailed task information"""
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
+    if users[user]['role'] != 'member':
+        return redirect(url_for('login'))
+    
+    # Find the task
+    task = None
+    for t in tasks:
+        if t.id == task_id and t.assigned_to == user:
+            task = t
+            break
+    
+    if not task:
+        flash('Task not found or not assigned to you', 'error')
+        return redirect(url_for('member_dashboard'))
+    
+    return render_template('task_details.html',
+                         task=task,
+                         users=users,
+                         is_admin_view=False)
+
+@app.route('/manager/task_details/<int:task_id>')
+def manager_task_details(task_id):
+    """Manager can view detailed task information"""
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
+    if users[user]['role'] != 'manager':
+        return redirect(url_for('login'))
+    
+    # Find the task
+    task = None
+    for t in tasks:
+        if t.id == task_id and t.assigned_to in users[user].get('team', []):
+            task = t
+            break
+    
+    if not task:
+        flash('Task not found or not assigned to your team', 'error')
+        return redirect(url_for('manager_dashboard'))
+    
+    return render_template('task_details.html',
+                         task=task,
+                         users=users,
+                         is_admin_view=False)
+
+@app.route('/manager/view_member/<username>')
+def manager_view_member(username):
+    """Manager can view a specific team member's dashboard"""
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+
+    if users[user]['role'] != 'manager':
+        return redirect(url_for('login'))
+    
+    # Check if the member is in the manager's team
+    if username not in users[user].get('team', []):
+        flash('You can only view members of your team', 'error')
+        return redirect(url_for('manager_dashboard'))
+    
+    target_user = users[username]
+    user_tasks = [task for task in tasks if task.assigned_to == username]
+    
+    # Calculate user stats
+    user_stats = {}
+    if user_tasks:
+        completed_tasks = [task for task in user_tasks if task.status == 'validated']
+        avg_kra_score = sum(task.kra_score for task in completed_tasks if task.kra_score > 0) / len(completed_tasks) if completed_tasks else 0
+        user_stats = {
+            'total_tasks': len(user_tasks),
+            'completed_tasks': len(completed_tasks),
+            'avg_kra_score': avg_kra_score
+        }
+    
+    # Group tasks by date
+    date_wise_tasks = {}
+    for task in user_tasks:
+        date_key = task.created_date.strftime('%Y-%m-%d')
+        if date_key not in date_wise_tasks:
+            date_wise_tasks[date_key] = []
+        date_wise_tasks[date_key].append(task)
+    
+    return render_template('member_dashboard.html',
+                         tasks=user_tasks,
+                         user=target_user,
+                         users=users,
+                         user_stats=user_stats,
+                         date_wise_tasks=date_wise_tasks,
+                         is_manager_view=True)
 
 if __name__ == '__main__':
     print("Starting Flask application...")

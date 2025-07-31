@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Team Member Dashboard - Prosonic Task Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -36,9 +37,13 @@
             border-radius: 5px;
             cursor: pointer;
             text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
         }
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -50,16 +55,20 @@
         }
         .stat-card {
             background: white;
-            padding: 20px;
+            padding: 25px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             text-align: center;
+            transition: transform 0.2s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
         }
         .stat-number {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: bold;
             color: #28a745;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
         .stat-label {
             color: #666;
@@ -76,6 +85,9 @@
             background: #f8f9fa;
             padding: 20px;
             border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .section-header h2 {
             margin: 0;
@@ -87,15 +99,25 @@
         }
         .btn {
             display: inline-block;
-            padding: 8px 16px;
+            padding: 10px 20px;
             background: #28a745;
             color: white;
             text-decoration: none;
+            border: none;
             border-radius: 5px;
-            margin: 2px;
-            font-size: 12px;
+            margin: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
         .btn:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
             background: #218838;
         }
         .btn-warning {
@@ -111,45 +133,37 @@
         .btn-info:hover {
             background: #138496;
         }
-        .task-card {
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .table th, .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .table th {
             background: #f8f9fa;
-        }
-        .task-card.pending {
-            border-left: 4px solid #ffc107;
-            background: #fff3cd;
-        }
-        .task-card.accepted {
-            border-left: 4px solid #17a2b8;
-            background: #d1ecf1;
-        }
-        .task-card.completed {
-            border-left: 4px solid #28a745;
-            background: #d4edda;
-        }
-        .task-card.validated {
-            border-left: 4px solid #20c997;
-            background: #d1e7dd;
-        }
-        .task-card.reopened {
-            border-left: 4px solid #dc3545;
-            background: #f8d7da;
-        }
-        .task-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .task-title {
-            font-weight: bold;
-            font-size: 16px;
+            font-weight: 600;
             color: #333;
         }
-        .task-status {
+        .table tr:hover {
+            background-color: #f8f9fa;
+        }
+        .status-badge {
             padding: 4px 8px;
             border-radius: 12px;
             font-size: 12px;
@@ -163,6 +177,10 @@
             background: #d1ecf1;
             color: #0c5460;
         }
+        .status-in_progress {
+            background: #cce5ff;
+            color: #004085;
+        }
         .status-completed {
             background: #d4edda;
             color: #155724;
@@ -174,55 +192,6 @@
         .status-reopened {
             background: #f8d7da;
             color: #721c24;
-        }
-        .task-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .task-detail {
-            font-size: 14px;
-        }
-        .task-detail strong {
-            color: #333;
-        }
-        .task-actions {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-        .roadmap {
-            margin-top: 15px;
-            padding: 10px;
-            background: white;
-            border-radius: 5px;
-        }
-        .roadmap h4 {
-            margin: 0 0 10px 0;
-            color: #333;
-            font-size: 14px;
-        }
-        .roadmap-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid #eee;
-            font-size: 12px;
-        }
-        .roadmap-item:last-child {
-            border-bottom: none;
-        }
-        .roadmap-item.completed {
-            color: #28a745;
-            font-weight: bold;
-        }
-        .roadmap-item.current {
-            color: #ffc107;
-            font-weight: bold;
-        }
-        .roadmap-item.pending {
-            color: #6c757d;
         }
         .priority-high {
             color: #dc3545;
@@ -236,47 +205,13 @@
             color: #28a745;
             font-weight: bold;
         }
-        .delayed {
-            color: #dc3545;
+        .kra-score {
             font-weight: bold;
         }
-        .urgent {
-            background: #f8d7da !important;
-            border-left-color: #dc3545 !important;
-        }
-        .extension-form {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-        .extension-form h4 {
-            margin: 0 0 10px 0;
-            color: #333;
-            font-size: 14px;
-        }
-        .form-group {
-            margin-bottom: 10px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: #333;
-        }
-        .form-group input, .form-group textarea, .form-group select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
-        .form-group textarea {
-            height: 80px;
-            resize: vertical;
-        }
+        .kra-excellent { color: #28a745; }
+        .kra-good { color: #17a2b8; }
+        .kra-average { color: #ffc107; }
+        .kra-poor { color: #dc3545; }
         .flash-messages {
             margin-bottom: 20px;
         }
@@ -288,32 +223,188 @@
             color: #155724;
             border: 1px solid #c3e6cb;
         }
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .task-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-left: 4px solid #28a745;
+        }
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .task-card.high-priority {
+            border-left-color: #dc3545;
+        }
+        .task-card.medium-priority {
+            border-left-color: #ffc107;
+        }
+        .task-card.low-priority {
+            border-left-color: #28a745;
+        }
+        .task-header {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-title {
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+        .task-body {
+            padding: 15px;
+        }
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+        .task-description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        .task-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .task-actions .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            margin: 0;
+        }
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .quick-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #333;
+        }
+        .quick-action-btn:hover {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .filter-btn.active {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+        .search-box {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 300px;
+            margin-bottom: 20px;
+        }
         .progress-bar {
             width: 100%;
-            height: 8px;
-            background: #e9ecef;
-            border-radius: 4px;
+            height: 6px;
+            background-color: #e9ecef;
+            border-radius: 3px;
             overflow: hidden;
-            margin-top: 5px;
+            margin: 10px 0;
         }
         .progress-fill {
             height: 100%;
-            background: #28a745;
+            background: linear-gradient(90deg, #28a745, #20c997);
             transition: width 0.3s ease;
         }
-        .progress-fill.warning {
-            background: #ffc107;
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
         }
-        .progress-fill.danger {
-            background: #dc3545;
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #000;
+        }
+        .performance-chart {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .chart-bar {
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .chart-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 0.3s ease;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>👤 <span style="color: #dc3545;">Prosonic</span> My Dashboard</h1>
+        <h1>🚀 <span style="color: #dc3545;">Prosonic</span> Team Dashboard</h1>
         <div class="user-info">
-            <span>Welcome, {{ user_data.name }}</span>
+            <span>Welcome, {{ user.name }}</span>
             <a href="{{ url_for('ai_chat') }}" class="logout-btn" style="background: #17a2b8;">🤖 AI Assistant</a>
             <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
         </div>
@@ -330,7 +421,7 @@
             {% endif %}
         {% endwith %}
 
-        <!-- Personal Statistics -->
+        <!-- Statistics Overview -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-number">{{ tasks|length }}</div>
@@ -346,172 +437,278 @@
             </div>
             <div class="stat-card">
                 <div class="stat-number">
-                    {% set completed = tasks|selectattr('status', 'equalto', 'validated')|list|length %}
-                    {% set total = tasks|length %}
-                    {% if total > 0 %}{{ (completed / total * 100)|round(1) }}{% else %}0{% endif %}%
+                    {% if user_stats and user_stats.get('avg_kra_score') %}
+                        {{ "%.1f"|format(user_stats.avg_kra_score) }}%
+                    {% else %}
+                        0%
+                    {% endif %}
                 </div>
-                <div class="stat-label">Completion Rate</div>
+                <div class="stat-label">Average KRA Score</div>
             </div>
         </div>
 
-        <!-- My Tasks -->
+        <!-- Quick Actions -->
         <div class="section">
             <div class="section-header">
-                <h2>My Tasks</h2>
+                <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
             </div>
             <div class="section-content">
-                {% if tasks %}
+                <div class="quick-actions">
+                    <a href="{{ url_for('create_task') }}" class="quick-action-btn">
+                        <i class="fas fa-plus"></i>
+                        <span>Create New Task</span>
+                    </a>
+                    <div class="quick-action-btn" onclick="openTaskView()">
+                        <i class="fas fa-eye"></i>
+                        <span>View My Tasks</span>
+                    </div>
+                    <div class="quick-action-btn" onclick="openPerformance()">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Performance</span>
+                    </div>
+                    <div class="quick-action-btn" onclick="openReports()">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Management -->
+        <div class="section">
+            <div class="section-header">
+                <h2><i class="fas fa-tasks"></i> My Tasks</h2>
+                <div>
+                    <input type="text" class="search-box" placeholder="Search tasks..." id="taskSearch">
+                </div>
+            </div>
+            <div class="section-content">
+                <!-- Filters -->
+                <div class="filters">
+                    <div class="filter-btn active" data-filter="all">All Tasks</div>
+                    <div class="filter-btn" data-filter="pending">Pending</div>
+                    <div class="filter-btn" data-filter="accepted">Accepted</div>
+                    <div class="filter-btn" data-filter="in_progress">In Progress</div>
+                    <div class="filter-btn" data-filter="completed">Completed</div>
+                    <div class="filter-btn" data-filter="validated">Validated</div>
+                </div>
+
+                <!-- Task Cards View -->
+                <div class="task-grid" id="taskGrid">
                     {% for task in tasks %}
-                        {% set days_remaining = (task.target_date - now).days %}
-                        {% set is_delayed = days_remaining < 0 %}
-                        {% set is_urgent = days_remaining <= 2 and days_remaining >= 0 %}
-                        
-                        <div class="task-card {{ task.status }}{% if is_urgent %} urgent{% endif %}">
+                        <div class="task-card {{ task.priority }}-priority" data-status="{{ task.status }}" data-priority="{{ task.priority }}">
                             <div class="task-header">
-                                <div class="task-title">{{ task.title }}</div>
-                                <span class="task-status status-{{ task.status }}">
+                                <h3 class="task-title">{{ task.title }}</h3>
+                                <span class="status-badge status-{{ task.status }}">
                                     {{ task.status|title }}
                                 </span>
                             </div>
-                            
-                            <div class="task-details">
-                                <div class="task-detail">
-                                    <strong>Priority:</strong> 
+                            <div class="task-body">
+                                <div class="task-meta">
+                                    <span><i class="fas fa-calendar"></i> {{ task.target_date.strftime('%Y-%m-%d') }}</span>
                                     <span class="priority-{{ task.priority }}">
-                                        {{ task.priority|title }}
+                                        <i class="fas fa-flag"></i> {{ task.priority|title }}
                                     </span>
                                 </div>
-                                <div class="task-detail">
-                                    <strong>Target Date:</strong> {{ task.target_date.strftime('%Y-%m-%d') }}
-                                    {% if is_delayed %}
-                                        <span class="delayed">({{ abs(days_remaining) }} days overdue)</span>
-                                    {% elif is_urgent %}
-                                        <span class="delayed">({{ days_remaining }} days left)</span>
+                                <div class="task-description">
+                                    {{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}
+                                </div>
+                                <div class="task-meta">
+                                    {% if task.kra_score > 0 %}
+                                        <span class="kra-score 
+                                            {% if task.kra_score >= 80 %}kra-excellent
+                                            {% elif task.kra_score >= 60 %}kra-good
+                                            {% elif task.kra_score >= 40 %}kra-average
+                                            {% else %}kra-poor{% endif %}">
+                                            KRA: {{ task.kra_score }}%
+                                        </span>
                                     {% endif %}
+                                    <span><i class="fas fa-clock"></i> {{ (task.target_date - task.created_date).days }} days</span>
                                 </div>
-                                <div class="task-detail">
-                                    <strong>Created:</strong> {{ task.created_date.strftime('%Y-%m-%d') }}
-                                </div>
-                                {% if task.accepted_date %}
-                                    <div class="task-detail">
-                                        <strong>Accepted:</strong> {{ task.accepted_date.strftime('%Y-%m-%d') }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="task-detail">
-                                <strong>Description:</strong> {{ task.description }}
-                            </div>
-                            
-                            <!-- Progress Bar -->
-                            {% if task.status in ['accepted', 'completed'] %}
-                                <div class="task-detail">
-                                    <strong>Progress:</strong>
-                                    <div class="progress-bar">
-                                        {% if task.status == 'completed' %}
-                                            <div class="progress-fill" style="width: 100%"></div>
-                                        {% else %}
-                                            <div class="progress-fill{% if is_urgent %} warning{% endif %}{% if is_delayed %} danger{% endif %}" 
-                                                 style="width: 50%"></div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            {% endif %}
-                            
-                            {% if task.roadmap %}
-                                <div class="roadmap">
-                                    <h4>📋 Task Roadmap:</h4>
-                                    {% for phase in task.roadmap %}
-                                        {% set phase_date = phase.date|string %}
-                                        {% set phase_passed = phase_date < now.strftime('%Y-%m-%d') %}
-                                        {% set phase_current = phase_date == now.strftime('%Y-%m-%d') %}
-                                        
-                                        <div class="roadmap-item{% if phase_passed %} completed{% elif phase_current %} current{% else %} pending{% endif %}">
-                                            <span>{{ phase.phase }}: {{ phase.description }}</span>
-                                            <span>{{ phase.date }}</span>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            
-                            <div class="task-actions">
-                                {% if task.status == 'pending' %}
-                                    <a href="{{ url_for('accept_task', task_id=task.id) }}" class="btn btn-success">
-                                        ✅ Accept Task
-                                    </a>
-                                {% endif %}
-                                
-                                {% if task.status == 'accepted' %}
-                                    <a href="{{ url_for('complete_task', task_id=task.id) }}" class="btn btn-success">
-                                        ✅ Mark Complete
-                                    </a>
-                                    
-                                    <!-- Extension Request Form -->
-                                    <button onclick="toggleExtensionForm({{ task.id }})" class="btn btn-warning">
-                                        ⏰ Request Extension
+                                <div class="task-actions">
+                                    <button class="btn btn-info" onclick="viewTaskDetails({{ task.id }})">
+                                        <i class="fas fa-eye"></i> View
                                     </button>
-                                    
-                                    <div id="extension-form-{{ task.id }}" class="extension-form" style="display: none;">
-                                        <h4>Request Time Extension</h4>
-                                        <form method="POST" action="{{ url_for('request_extension', task_id=task.id) }}">
-                                            <div class="form-group">
-                                                <label for="extra_days">Extra Days Needed:</label>
-                                                <select name="extra_days" required>
-                                                    <option value="1">1 day</option>
-                                                    <option value="2">2 days</option>
-                                                    <option value="3">3 days</option>
-                                                </select>
+                                    {% if task.status == 'pending' %}
+                                        <a href="{{ url_for('accept_task', task_id=task.id) }}" class="btn btn-success">
+                                            <i class="fas fa-check"></i> Accept
+                                        </a>
+                                    {% elif task.status == 'accepted' or task.status == 'in_progress' %}
+                                        <a href="{{ url_for('complete_task', task_id=task.id) }}" class="btn btn-success">
+                                            <i class="fas fa-flag-checkered"></i> Complete
+                                        </a>
+                                    {% endif %}
+                                    <button class="btn btn-warning" onclick="requestExtension({{ task.id }})">
+                                        <i class="fas fa-clock"></i> Extension
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Overview -->
+        <div class="section">
+            <div class="section-header">
+                <h2><i class="fas fa-chart-line"></i> Performance Overview</h2>
+            </div>
+            <div class="section-content">
+                {% if user_stats %}
+                    <div class="performance-chart">
+                        <h3>KRA Performance</h3>
+                        <div class="chart-bar">
+                            <div class="chart-fill" style="width: {{ user_stats.avg_kra_score or 0 }}%"></div>
+                        </div>
+                        <p>Average KRA Score: {{ "%.1f"|format(user_stats.avg_kra_score or 0) }}%</p>
+                        
+                        <h3>Task Completion Rate</h3>
+                        <div class="chart-bar">
+                            <div class="chart-fill" style="width: {{ (tasks|selectattr('status', 'equalto', 'validated')|list|length / tasks|length * 100) if tasks|length > 0 else 0 }}%"></div>
+                        </div>
+                        <p>Completion Rate: {{ "%.1f"|format((tasks|selectattr('status', 'equalto', 'validated')|list|length / tasks|length * 100) if tasks|length > 0 else 0) }}%</p>
+                    </div>
+                {% else %}
+                    <p>No performance data available yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="section">
+            <div class="section-header">
+                <h2><i class="fas fa-history"></i> Recent Activity</h2>
+            </div>
+            <div class="section-content">
+                {% if date_wise_tasks %}
+                    {% for date, day_tasks in date_wise_tasks.items() %}
+                        <div style="margin-bottom: 20px;">
+                            <h4>{{ date }}</h4>
+                            <div class="task-grid">
+                                {% for task in day_tasks %}
+                                    <div class="task-card {{ task.priority }}-priority">
+                                        <div class="task-header">
+                                            <h3 class="task-title">{{ task.title }}</h3>
+                                            <span class="status-badge status-{{ task.status }}">
+                                                {{ task.status|title }}
+                                            </span>
+                                        </div>
+                                        <div class="task-body">
+                                            <div class="task-description">
+                                                {{ task.description[:80] }}{% if task.description|length > 80 %}...{% endif %}
                                             </div>
-                                            <div class="form-group">
-                                                <label for="reason">Reason for Extension:</label>
-                                                <textarea name="reason" placeholder="Please explain why you need additional time..." required></textarea>
+                                            <div class="task-actions">
+                                                <button class="btn btn-info" onclick="viewTaskDetails({{ task.id }})">
+                                                    <i class="fas fa-eye"></i> View
+                                                </button>
                                             </div>
-                                            <button type="submit" class="btn btn-info">Submit Request</button>
-                                        </form>
+                                        </div>
                                     </div>
-                                {% endif %}
-                                
-                                {% if task.status == 'completed' %}
-                                    <span class="task-detail">
-                                        ✅ Completed on {{ task.completion_date.strftime('%Y-%m-%d') }}
-                                        <br>Waiting for manager validation...
-                                    </span>
-                                {% endif %}
-                                
-                                {% if task.status == 'validated' %}
-                                    <span class="task-detail">
-                                        ✅ Task validated on {{ task.validation_date.strftime('%Y-%m-%d') }}
-                                        {% if task.kra_score > 0 %}
-                                            <br>KRA Score: {{ task.kra_score }}%
-                                        {% endif %}
-                                    </span>
-                                {% endif %}
-                                
-                                {% if task.status == 'reopened' %}
-                                    <span class="task-detail">
-                                        🔄 Task reopened by manager. Please review and complete remaining work.
-                                    </span>
-                                    <a href="{{ url_for('complete_task', task_id=task.id) }}" class="btn btn-success">
-                                        ✅ Mark Complete Again
-                                    </a>
-                                {% endif %}
+                                {% endfor %}
                             </div>
                         </div>
                     {% endfor %}
                 {% else %}
-                    <p>No tasks assigned to you yet.</p>
+                    <p>No recent activity.</p>
                 {% endif %}
             </div>
         </div>
     </div>
 
+    <!-- Task Details Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Task Details</h2>
+            <div id="modalContent">
+                <!-- Task details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
     <script>
-        function toggleExtensionForm(taskId) {
-            const form = document.getElementById('extension-form-' + taskId);
-            if (form.style.display === 'none') {
-                form.style.display = 'block';
-            } else {
-                form.style.display = 'none';
+        // Task filtering functionality
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const filter = this.getAttribute('data-filter');
+                const tasks = document.querySelectorAll('.task-card');
+                
+                tasks.forEach(task => {
+                    if (filter === 'all' || task.getAttribute('data-status') === filter) {
+                        task.style.display = 'block';
+                    } else {
+                        task.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Search functionality
+        document.getElementById('taskSearch').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tasks = document.querySelectorAll('.task-card');
+            
+            tasks.forEach(task => {
+                const title = task.querySelector('.task-title').textContent.toLowerCase();
+                const description = task.querySelector('.task-description').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                    task.style.display = 'block';
+                } else {
+                    task.style.display = 'none';
+                }
+            });
+        });
+
+        // Modal functionality
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+
+        // Quick action functions
+        function openTaskView() {
+            // Scroll to task management section
+            document.querySelector('.task-grid').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function openPerformance() {
+            // Scroll to performance section
+            document.querySelector('.section:nth-child(4)').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function openReports() {
+            // This would open reports
+            alert('Reports feature coming soon!');
+        }
+
+        // Task detail functions
+        function viewTaskDetails(taskId) {
+            // Redirect to task details page
+            window.location.href = `/member/task_details/${taskId}`;
+        }
+
+        function requestExtension(taskId) {
+            const days = prompt('Enter number of days for extension:');
+            if (days && !isNaN(days)) {
+                // This would submit the extension request
+                alert(`Extension request submitted for ${days} days`);
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                closeModal();
             }
         }
     </script>

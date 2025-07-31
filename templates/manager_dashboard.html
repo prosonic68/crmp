@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manager Dashboard - Prosonic Task Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -36,9 +37,13 @@
             border-radius: 5px;
             cursor: pointer;
             text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
         }
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -50,16 +55,20 @@
         }
         .stat-card {
             background: white;
-            padding: 20px;
+            padding: 25px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             text-align: center;
+            transition: transform 0.2s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
         }
         .stat-number {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: bold;
             color: #17a2b8;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
         .stat-label {
             color: #666;
@@ -76,6 +85,9 @@
             background: #f8f9fa;
             padding: 20px;
             border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .section-header h2 {
             margin: 0;
@@ -87,28 +99,26 @@
         }
         .btn {
             display: inline-block;
-            padding: 8px 16px;
+            padding: 10px 20px;
             background: #17a2b8;
             color: white;
             text-decoration: none;
+            border: none;
             border-radius: 5px;
-            margin: 2px;
-            font-size: 12px;
+            margin: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
         .btn:hover {
             background: #138496;
+            transform: translateY(-1px);
         }
         .btn-success {
             background: #28a745;
         }
         .btn-success:hover {
             background: #218838;
-        }
-        .btn-danger {
-            background: #dc3545;
-        }
-        .btn-danger:hover {
-            background: #c82333;
         }
         .btn-warning {
             background: #ffc107;
@@ -117,37 +127,43 @@
         .btn-warning:hover {
             background: #e0a800;
         }
-        .task-card {
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
+        .btn-info {
+            background: #17a2b8;
+        }
+        .btn-info:hover {
+            background: #138496;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .table th, .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .table th {
             background: #f8f9fa;
-        }
-        .task-card.pending {
-            border-left: 4px solid #ffc107;
-            background: #fff3cd;
-        }
-        .task-card.completed {
-            border-left: 4px solid #28a745;
-            background: #d4edda;
-        }
-        .task-card.validated {
-            border-left: 4px solid #17a2b8;
-            background: #d1ecf1;
-        }
-        .task-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .task-title {
-            font-weight: bold;
-            font-size: 16px;
+            font-weight: 600;
             color: #333;
         }
-        .task-status {
+        .table tr:hover {
+            background-color: #f8f9fa;
+        }
+        .status-badge {
             padding: 4px 8px;
             border-radius: 12px;
             font-size: 12px;
@@ -161,6 +177,10 @@
             background: #d1ecf1;
             color: #0c5460;
         }
+        .status-in_progress {
+            background: #cce5ff;
+            color: #004085;
+        }
         .status-completed {
             background: #d4edda;
             color: #155724;
@@ -169,60 +189,9 @@
             background: #d1e7dd;
             color: #0f5132;
         }
-        .task-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .task-detail {
-            font-size: 14px;
-        }
-        .task-detail strong {
-            color: #333;
-        }
-        .task-actions {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-        .extension-request {
+        .status-reopened {
             background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            border-radius: 5px;
-            padding: 10px;
-            margin-top: 10px;
-        }
-        .extension-request h4 {
-            margin: 0 0 5px 0;
             color: #721c24;
-            font-size: 14px;
-        }
-        .extension-request p {
-            margin: 0;
-            color: #721c24;
-            font-size: 12px;
-        }
-        .roadmap {
-            margin-top: 15px;
-            padding: 10px;
-            background: white;
-            border-radius: 5px;
-        }
-        .roadmap h4 {
-            margin: 0 0 10px 0;
-            color: #333;
-            font-size: 14px;
-        }
-        .roadmap-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid #eee;
-            font-size: 12px;
-        }
-        .roadmap-item:last-child {
-            border-bottom: none;
         }
         .priority-high {
             color: #dc3545;
@@ -236,10 +205,13 @@
             color: #28a745;
             font-weight: bold;
         }
-        .delayed {
-            color: #dc3545;
+        .kra-score {
             font-weight: bold;
         }
+        .kra-excellent { color: #28a745; }
+        .kra-good { color: #17a2b8; }
+        .kra-average { color: #ffc107; }
+        .kra-poor { color: #dc3545; }
         .flash-messages {
             margin-bottom: 20px;
         }
@@ -251,13 +223,198 @@
             color: #155724;
             border: 1px solid #c3e6cb;
         }
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .task-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-left: 4px solid #17a2b8;
+        }
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .task-card.high-priority {
+            border-left-color: #dc3545;
+        }
+        .task-card.medium-priority {
+            border-left-color: #ffc107;
+        }
+        .task-card.low-priority {
+            border-left-color: #28a745;
+        }
+        .task-header {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-title {
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+        .task-body {
+            padding: 15px;
+        }
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+        .task-description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        .task-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .task-actions .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            margin: 0;
+        }
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .quick-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #333;
+        }
+        .quick-action-btn:hover {
+            background: #17a2b8;
+            color: white;
+            border-color: #17a2b8;
+        }
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .filter-btn.active {
+            background: #17a2b8;
+            color: white;
+            border-color: #17a2b8;
+        }
+        .search-box {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 300px;
+            margin-bottom: 20px;
+        }
+        .team-member-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+        .team-member-card:hover {
+            transform: translateY(-2px);
+        }
+        .member-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .member-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 18px;
+        }
+        .member-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #17a2b8;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #000;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>👥 <span style="color: #dc3545;">Prosonic</span> Manager Dashboard</h1>
+        <h1>🚀 <span style="color: #dc3545;">Prosonic</span> Manager Dashboard</h1>
         <div class="user-info">
-            <span>Welcome, {{ users[session['user']]['name'] }}</span>
+            <span>Welcome, {{ user.name }}</span>
+            <a href="{{ url_for('ai_chat') }}" class="logout-btn" style="background: #17a2b8;">🤖 AI Assistant</a>
             <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
         </div>
     </div>
@@ -273,18 +430,18 @@
             {% endif %}
         {% endwith %}
 
-        <!-- Team Statistics -->
+        <!-- Statistics Overview -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-number">{{ tasks|length }}</div>
+                <div class="stat-number">{{ team_tasks|length }}</div>
                 <div class="stat-label">Team Tasks</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">{{ tasks|selectattr('status', 'equalto', 'pending')|list|length }}</div>
+                <div class="stat-number">{{ team_tasks|selectattr('status', 'equalto', 'pending')|list|length }}</div>
                 <div class="stat-label">Pending Tasks</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">{{ tasks|selectattr('status', 'equalto', 'completed')|list|length }}</div>
+                <div class="stat-number">{{ team_tasks|selectattr('status', 'equalto', 'validated')|list|length }}</div>
                 <div class="stat-label">Completed Tasks</div>
             </div>
             <div class="stat-card">
@@ -296,165 +453,327 @@
         <!-- Quick Actions -->
         <div class="section">
             <div class="section-header">
-                <h2>Quick Actions</h2>
+                <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
             </div>
             <div class="section-content">
-                <a href="{{ url_for('create_task') }}" class="btn">Create New Task</a>
-                <a href="#pending-tasks" class="btn">View Pending Tasks</a>
-                <a href="#extension-requests" class="btn">Review Extensions</a>
+                <div class="quick-actions">
+                    <a href="{{ url_for('create_task') }}" class="quick-action-btn">
+                        <i class="fas fa-plus"></i>
+                        <span>Create New Task</span>
+                    </a>
+                    <div class="quick-action-btn" onclick="openTeamView()">
+                        <i class="fas fa-users"></i>
+                        <span>View Team</span>
+                    </div>
+                    <div class="quick-action-btn" onclick="openTaskView()">
+                        <i class="fas fa-eye"></i>
+                        <span>View Tasks</span>
+                    </div>
+                    <div class="quick-action-btn" onclick="openReports()">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports</span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Team Tasks -->
-        <div class="section" id="pending-tasks">
-            <div class="section-header">
-                <h2>Team Tasks Overview</h2>
-            </div>
-            <div class="section-content">
-                {% if tasks %}
-                    {% for task in tasks %}
-                        <div class="task-card {{ task.status }}">
-                            <div class="task-header">
-                                <div class="task-title">{{ task.title }}</div>
-                                <span class="task-status status-{{ task.status }}">
-                                    {{ task.status|title }}
-                                </span>
-                            </div>
-                            
-                            <div class="task-details">
-                                <div class="task-detail">
-                                    <strong>Assigned to:</strong> {{ users[task.assigned_to]['name'] }}
-                                </div>
-                                <div class="task-detail">
-                                    <strong>Priority:</strong> 
-                                    <span class="priority-{{ task.priority }}">
-                                        {{ task.priority|title }}
-                                    </span>
-                                </div>
-                                <div class="task-detail">
-                                    <strong>Target Date:</strong> {{ task.target_date.strftime('%Y-%m-%d') }}
-                                </div>
-                                <div class="task-detail">
-                                    <strong>Created:</strong> {{ task.created_date.strftime('%Y-%m-%d') }}
-                                </div>
-                            </div>
-                            
-                            <div class="task-detail">
-                                <strong>Description:</strong> {{ task.description }}
-                            </div>
-                            
-                            {% if task.roadmap %}
-                                <div class="roadmap">
-                                    <h4>📋 Task Roadmap:</h4>
-                                    {% for phase in task.roadmap %}
-                                        <div class="roadmap-item">
-                                            <span>{{ phase.phase }}: {{ phase.description }}</span>
-                                            <span>{{ phase.date }}</span>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            
-                            <!-- Extension Requests -->
-                            {% if task.extension_requests %}
-                                <div id="extension-requests">
-                                    <h4>⏰ Extension Requests:</h4>
-                                    {% for request in task.extension_requests %}
-                                        {% if request.status == 'pending' %}
-                                            <div class="extension-request">
-                                                <h4>Request from {{ users[request.requested_by]['name'] }}</h4>
-                                                <p><strong>Extra Days:</strong> {{ request.extra_days }} days</p>
-                                                <p><strong>Reason:</strong> {{ request.reason }}</p>
-                                                <p><strong>Requested:</strong> {{ request.request_date.strftime('%Y-%m-%d %H:%M') }}</p>
-                                                <div class="task-actions">
-                                                    <a href="{{ url_for('approve_extension', task_id=task.id, request_index=loop.index0) }}" 
-                                                       class="btn btn-success">Approve</a>
-                                                    <a href="{{ url_for('reject_extension', task_id=task.id, request_index=loop.index0) }}" 
-                                                       class="btn btn-danger">Reject</a>
-                                                </div>
-                                            </div>
-                                        {% endif %}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            
-                            <div class="task-actions">
-                                {% if task.status == 'completed' %}
-                                    <a href="{{ url_for('validate_task', task_id=task.id) }}" class="btn btn-success">
-                                        ✅ Validate Task
-                                    </a>
-                                {% endif %}
-                                
-                                {% if task.status == 'validated' %}
-                                    <a href="{{ url_for('reopen_task', task_id=task.id) }}" class="btn btn-warning">
-                                        🔄 Reopen Task
-                                    </a>
-                                {% endif %}
-                                
-                                {% if task.status == 'pending' %}
-                                    <span class="task-detail delayed">
-                                        ⚠️ Waiting for team member to accept
-                                    </span>
-                                {% endif %}
-                                
-                                {% if task.status == 'accepted' %}
-                                    <span class="task-detail">
-                                        ✅ Accepted on {{ task.accepted_date.strftime('%Y-%m-%d') }}
-                                    </span>
-                                {% endif %}
-                                
-                                {% if task.status == 'completed' %}
-                                    <span class="task-detail">
-                                        ✅ Completed on {{ task.completion_date.strftime('%Y-%m-%d') }}
-                                    </span>
-                                {% endif %}
-                                
-                                {% if task.status == 'validated' %}
-                                    <span class="task-detail">
-                                        ✅ Validated on {{ task.validation_date.strftime('%Y-%m-%d') }}
-                                        {% if task.kra_score > 0 %}
-                                            (KRA: {{ task.kra_score }}%)
-                                        {% endif %}
-                                    </span>
-                                {% endif %}
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <p>No tasks assigned to your team yet.</p>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Team Members -->
+        <!-- Team Management -->
         <div class="section">
             <div class="section-header">
-                <h2>Team Members</h2>
+                <h2><i class="fas fa-users"></i> Team Management</h2>
             </div>
             <div class="section-content">
                 {% for member in team_members %}
-                    <div class="task-card">
-                        <div class="task-header">
-                            <div class="task-title">{{ users[member]['name'] }}</div>
-                            <span class="task-status status-member">Team Member</span>
+                    <div class="team-member-card">
+                        <div class="member-header">
+                            <div class="member-name">{{ users[member]['name'] }}</div>
+                            <div>
+                                <button class="btn btn-info" onclick="viewMemberTasks('{{ member }}')">
+                                    <i class="fas fa-eye"></i> View Tasks
+                                </button>
+                                <button class="btn btn-success" onclick="createTaskForMember('{{ member }}')">
+                                    <i class="fas fa-plus"></i> Create Task
+                                </button>
+                            </div>
                         </div>
-                        <div class="task-details">
-                            <div class="task-detail">
-                                <strong>Email:</strong> {{ users[member]['email'] }}
+                        <div class="member-stats">
+                            {% set member_tasks = tasks|selectattr('assigned_to', 'equalto', member)|list %}
+                            <div class="stat-item">
+                                <div class="stat-value">{{ member_tasks|length }}</div>
+                                <div class="stat-label">Total Tasks</div>
                             </div>
-                            <div class="task-detail">
-                                <strong>Tasks Assigned:</strong> 
-                                {{ tasks|selectattr('assigned_to', 'equalto', member)|list|length }}
+                            <div class="stat-item">
+                                <div class="stat-value">{{ member_tasks|selectattr('status', 'equalto', 'pending')|list|length }}</div>
+                                <div class="stat-label">Pending</div>
                             </div>
-                            <div class="task-detail">
-                                <strong>Completed Tasks:</strong> 
-                                {{ tasks|selectattr('assigned_to', 'equalto', member)|selectattr('status', 'equalto', 'validated')|list|length }}
+                            <div class="stat-item">
+                                <div class="stat-value">{{ member_tasks|selectattr('status', 'equalto', 'validated')|list|length }}</div>
+                                <div class="stat-label">Completed</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">
+                                    {% set completed_tasks = member_tasks|selectattr('status', 'equalto', 'validated')|list %}
+                                    {% if member_tasks|length > 0 %}
+                                        {{ "%.1f"|format((completed_tasks|length / member_tasks|length * 100)) }}%
+                                    {% else %}
+                                        0%
+                                    {% endif %}
+                                </div>
+                                <div class="stat-label">Success Rate</div>
                             </div>
                         </div>
                     </div>
                 {% endfor %}
             </div>
         </div>
+
+        <!-- Task Management -->
+        <div class="section">
+            <div class="section-header">
+                <h2><i class="fas fa-tasks"></i> Team Tasks</h2>
+                <div>
+                    <input type="text" class="search-box" placeholder="Search tasks..." id="taskSearch">
+                </div>
+            </div>
+            <div class="section-content">
+                <!-- Filters -->
+                <div class="filters">
+                    <div class="filter-btn active" data-filter="all">All Tasks</div>
+                    <div class="filter-btn" data-filter="pending">Pending</div>
+                    <div class="filter-btn" data-filter="accepted">Accepted</div>
+                    <div class="filter-btn" data-filter="in_progress">In Progress</div>
+                    <div class="filter-btn" data-filter="completed">Completed</div>
+                    <div class="filter-btn" data-filter="validated">Validated</div>
+                </div>
+
+                <!-- Task Cards View -->
+                <div class="task-grid" id="taskGrid">
+                    {% for task in team_tasks %}
+                        <div class="task-card {{ task.priority }}-priority" data-status="{{ task.status }}" data-priority="{{ task.priority }}">
+                            <div class="task-header">
+                                <h3 class="task-title">{{ task.title }}</h3>
+                                <span class="status-badge status-{{ task.status }}">
+                                    {{ task.status|title }}
+                                </span>
+                            </div>
+                            <div class="task-body">
+                                <div class="task-meta">
+                                    <span><i class="fas fa-user"></i> {{ users[task.assigned_to]['name'] }}</span>
+                                    <span><i class="fas fa-calendar"></i> {{ task.target_date.strftime('%Y-%m-%d') }}</span>
+                                </div>
+                                <div class="task-description">
+                                    {{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}
+                                </div>
+                                <div class="task-meta">
+                                    <span class="priority-{{ task.priority }}">
+                                        <i class="fas fa-flag"></i> {{ task.priority|title }}
+                                    </span>
+                                    {% if task.kra_score > 0 %}
+                                        <span class="kra-score 
+                                            {% if task.kra_score >= 80 %}kra-excellent
+                                            {% elif task.kra_score >= 60 %}kra-good
+                                            {% elif task.kra_score >= 40 %}kra-average
+                                            {% else %}kra-poor{% endif %}">
+                                            KRA: {{ task.kra_score }}%
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div class="task-actions">
+                                    <button class="btn btn-info" onclick="viewTaskDetails({{ task.id }})">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                    {% if task.status == 'completed' %}
+                                        <button class="btn btn-success" onclick="validateTask({{ task.id }})">
+                                            <i class="fas fa-check"></i> Validate
+                                        </button>
+                                    {% elif task.status == 'validated' %}
+                                        <button class="btn btn-warning" onclick="reopenTask({{ task.id }})">
+                                            <i class="fas fa-redo"></i> Reopen
+                                        </button>
+                                    {% endif %}
+                                    <button class="btn btn-warning" onclick="editTask({{ task.id }})">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Performance -->
+        <div class="section">
+            <div class="section-header">
+                <h2><i class="fas fa-chart-line"></i> Team Performance</h2>
+            </div>
+            <div class="section-content">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Team Member</th>
+                            <th>Total Tasks</th>
+                            <th>Completed</th>
+                            <th>Success Rate</th>
+                            <th>Avg KRA Score</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in team_members %}
+                            {% set member_tasks = tasks|selectattr('assigned_to', 'equalto', member)|list %}
+                            {% set completed_tasks = member_tasks|selectattr('status', 'equalto', 'validated')|list %}
+                            {% set avg_kra = (member_tasks|map(attribute='kra_score')|select|sum) / (member_tasks|map(attribute='kra_score')|select|list|length) if (member_tasks|map(attribute='kra_score')|select|list|length) > 0 else 0 %}
+                            <tr>
+                                <td>{{ users[member]['name'] }}</td>
+                                <td>{{ member_tasks|length }}</td>
+                                <td>{{ completed_tasks|length }}</td>
+                                <td>
+                                    {% if member_tasks|length > 0 %}
+                                        {{ "%.1f"|format((completed_tasks|length / member_tasks|length * 100)) }}%
+                                    {% else %}
+                                        0%
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="kra-score 
+                                        {% if avg_kra >= 80 %}kra-excellent
+                                        {% elif avg_kra >= 60 %}kra-good
+                                        {% elif avg_kra >= 40 %}kra-average
+                                        {% else %}kra-poor{% endif %}">
+                                        {{ "%.1f"|format(avg_kra) }}%
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-info" onclick="viewMemberTasks('{{ member }}')">
+                                        <i class="fas fa-eye"></i> View Tasks
+                                    </button>
+                                    <button class="btn btn-success" onclick="createTaskForMember('{{ member }}')">
+                                        <i class="fas fa-plus"></i> Create Task
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
+
+    <!-- Task Details Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Task Details</h2>
+            <div id="modalContent">
+                <!-- Task details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Task filtering functionality
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const filter = this.getAttribute('data-filter');
+                const tasks = document.querySelectorAll('.task-card');
+                
+                tasks.forEach(task => {
+                    if (filter === 'all' || task.getAttribute('data-status') === filter) {
+                        task.style.display = 'block';
+                    } else {
+                        task.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Search functionality
+        document.getElementById('taskSearch').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tasks = document.querySelectorAll('.task-card');
+            
+            tasks.forEach(task => {
+                const title = task.querySelector('.task-title').textContent.toLowerCase();
+                const description = task.querySelector('.task-description').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                    task.style.display = 'block';
+                } else {
+                    task.style.display = 'none';
+                }
+            });
+        });
+
+        // Modal functionality
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+
+        // Quick action functions
+        function openTeamView() {
+            // Scroll to team management section
+            document.querySelector('.section:nth-child(3)').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function openTaskView() {
+            // Scroll to task management section
+            document.querySelector('.task-grid').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function openReports() {
+            // This would open reports
+            alert('Reports feature coming soon!');
+        }
+
+        // Task detail functions
+        function viewTaskDetails(taskId) {
+            // Redirect to task details page
+            window.location.href = `/manager/task_details/${taskId}`;
+        }
+
+        function viewMemberTasks(member) {
+            // Redirect to member dashboard view
+            window.location.href = `/manager/view_member/${member}`;
+        }
+
+        function createTaskForMember(member) {
+            // Redirect to create task with pre-filled member
+            window.location.href = `/create_task?assigned_to=${member}`;
+        }
+
+        function validateTask(taskId) {
+            if (confirm('Are you sure you want to validate this task?')) {
+                window.location.href = `/validate_task/${taskId}`;
+            }
+        }
+
+        function reopenTask(taskId) {
+            if (confirm('Are you sure you want to reopen this task?')) {
+                window.location.href = `/reopen_task/${taskId}`;
+            }
+        }
+
+        function editTask(taskId) {
+            // This would open task edit form
+            alert(`Edit task ${taskId} - Feature coming soon!`);
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                closeModal();
+            }
+        }
+    </script>
 </body>
 </html> 
