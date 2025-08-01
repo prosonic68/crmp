@@ -35,18 +35,18 @@ EMAIL_CONFIG = {
     'provider': os.environ.get('EMAIL_PROVIDER', 'prosonic'),  # 'gmail' or 'prosonic'
     'smtp_server': os.environ.get('SMTP_SERVER', 'smtp.prosonic.in'),
     'smtp_port': int(os.environ.get('SMTP_PORT', '587')),
-    'username': os.environ.get('SMTP_USERNAME', 'sm@prosonic.in'),
-    'password': os.environ.get('SMTP_PASSWORD', 'Abhishek9@'),
-    'from_email': os.environ.get('SMTP_FROM_EMAIL', 'sm@prosonic.in')
+    'username': os.environ.get('SMTP_USERNAME', ''),
+    'password': os.environ.get('SMTP_PASSWORD', ''),
+    'from_email': os.environ.get('SMTP_FROM_EMAIL', '')
 }
 
 # Prosonic SMTP Configuration (if using company email)
 PROSONIC_EMAIL_CONFIG = {
-    'smtp_server': 'smtp.prosonic.in',
-    'smtp_port': 587,
-    'username': 'sm@prosonic.in',
-    'password': 'Abhishek9@',
-    'from_email': 'sm@prosonic.in'
+    'smtp_server': os.environ.get('PROSONIC_SMTP_SERVER', 'smtp.prosonic.in'),
+    'smtp_port': int(os.environ.get('PROSONIC_SMTP_PORT', '587')),
+    'username': os.environ.get('PROSONIC_SMTP_USERNAME', ''),
+    'password': os.environ.get('PROSONIC_SMTP_PASSWORD', ''),
+    'from_email': os.environ.get('PROSONIC_SMTP_FROM_EMAIL', '')
 }
 
 # Gmail SMTP Configuration (for Gmail users)
@@ -94,7 +94,7 @@ users = {
     'divya':    {'password': 'prosonic123', 'role': 'member',  'name': 'Divya Jori',            'email': 'divyajori.prosonic@gmail.com', 'department': 'HR', 'manager': 'mandar'},
     'nayan':    {'password': 'prosonic123', 'role': 'member',  'name': 'Nayan Ahir',            'email': 'nayanaahir50@gmail.com',   'department': 'Design', 'manager': 'abhishek'},
     'archana':  {'password': 'prosonic123', 'role': 'manager', 'name': 'Archana Tatooskar',     'email': 'coo@prosonic.in',          'department': 'Operations', 'team': ['monali']},
-    'amol':     {'password': 'prosonic123', 'role': 'admin',   'name': 'Amol Panse',            'email': 'omkar.prosonic@gmail.com', 'department': 'Management', 'team': ['monali', 'divya']},
+    'amol':     {'password': 'prosonic123', 'role': 'manager', 'name': 'Amol Panse',            'email': 'amol.panse@prosonic.in', 'department': 'Management', 'team': ['monali', 'divya']},
     'admin':    {'password': 'admin',        'role': 'admin',   'name': 'System Administrator',  'email': 'admin@prosonic.in',        'department': 'IT', 'team': ['nayan', 'divya', 'monali']},
 }
 
@@ -476,43 +476,47 @@ def admin_dashboard():
 
 @app.route('/manager/dashboard')
 def manager_dashboard():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    
-    user = session['user']
-    if user not in users:
-        return redirect(url_for('login'))
+    try:
+        if 'user' not in session:
+            return redirect(url_for('login'))
+        
+        user = session['user']
+        if user not in users:
+            return redirect(url_for('login'))
 
-    if users[user]['role'] != 'manager':
-        return redirect(url_for('login'))
-    
-    manager = user
-    team_tasks = [task for task in tasks if task.assigned_to in users[manager]['team']]
-    
-    # Employee-wise stats
-    employee_stats = {}
-    for member in users[manager]['team']:
-        employee_stats[member] = get_employee_stats(member)
-    
-    # Project-wise stats
-    project_stats = {}
-    for project_id, project_data in projects.items():
-        if project_data['department'] == users[manager]['department']:
-            project_tasks = [task for task in team_tasks if task.project_id == project_id]
-            project_stats[project_id] = {
-                'name': project_data['name'],
-                'total': len(project_tasks),
-                'completed': len([t for t in project_tasks if t.status == 'validated']),
-                'pending': len([t for t in project_tasks if t.status == 'pending'])
-            }
-    
-    return render_template('manager_dashboard.html',
-                         tasks=team_tasks,
-                         team_members=users[manager]['team'],
-                         users=users,
-                         employee_stats=employee_stats,
-                         project_stats=project_stats,
-                         task_categories=task_categories)
+        if users[user]['role'] != 'manager':
+            return redirect(url_for('login'))
+        
+        manager = user
+        team_tasks = [task for task in tasks if task.assigned_to in users[manager]['team']]
+        
+        # Employee-wise stats
+        employee_stats = {}
+        for member in users[manager]['team']:
+            employee_stats[member] = get_employee_stats(member)
+        
+        # Project-wise stats
+        project_stats = {}
+        for project_id, project_data in projects.items():
+            if project_data['department'] == users[manager]['department']:
+                project_tasks = [task for task in team_tasks if task.project_id == project_id]
+                project_stats[project_id] = {
+                    'name': project_data['name'],
+                    'total': len(project_tasks),
+                    'completed': len([t for t in project_tasks if t.status == 'validated']),
+                    'pending': len([t for t in project_tasks if t.status == 'pending'])
+                }
+        
+        return render_template('manager_dashboard.html',
+                             tasks=team_tasks,
+                             team_members=users[manager]['team'],
+                             users=users,
+                             employee_stats=employee_stats,
+                             project_stats=project_stats,
+                             task_categories=task_categories)
+    except Exception as e:
+        print(f"Error in manager dashboard: {e}")
+        return f"Error in manager dashboard: {str(e)}", 500
 
 @app.route('/member/dashboard')
 def member_dashboard():
@@ -595,19 +599,21 @@ def create_task():
             flash('Invalid target date format', 'error')
             return render_template('create_task.html', users=users, departments=departments, projects=projects)
         
+        # Calculate timeline_days from target_date
+        timeline_days = (target_date - datetime.now().date()).days
+        
         # Create new task
         new_task = Task(
             id=len(tasks) + 1,
             title=title,
             description=description,
+            assigned_by=user,
             assigned_to=assigned_to,
+            timeline_days=timeline_days,
             priority=priority,
-            target_date=target_date,
             category=category,
             department=department,
-            project=project,
-            created_date=datetime.now().date(),
-            status='pending'
+            project_id=project
         )
         
         tasks.append(new_task)
@@ -912,23 +918,7 @@ Prosonic Task Management System''')
     
     return redirect(url_for('admin_dashboard'))
 
-@app.route('/email_info')
-def email_info():
-    """Display email information for all users"""
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    
-    email_list = []
-    for username, user_data in users.items():
-        email_list.append({
-            'username': username,
-            'name': user_data['name'],
-            'email': user_data['email'],
-            'role': user_data['role'],
-            'department': user_data.get('department', 'N/A')
-        })
-    
-    return render_template('email_info.html', users=email_list)
+
 
 @app.route('/reports/monthly')
 def monthly_report():

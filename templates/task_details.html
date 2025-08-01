@@ -434,7 +434,7 @@
                     </span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: {{ progress }}%"></div>
+                    <div class="progress-fill" id="progressFill" data-progress="{{ progress }}"></div>
                 </div>
                 
                 {% if task.kra_score > 0 %}
@@ -588,6 +588,15 @@
     </div>
 
     <script>
+        // Set progress bar width
+        document.addEventListener('DOMContentLoaded', function() {
+            const progressFill = document.getElementById('progressFill');
+            if (progressFill) {
+                const progress = progressFill.getAttribute('data-progress');
+                progressFill.style.width = progress + '%';
+            }
+        });
+
         function requestExtension() {
             const days = prompt('Enter number of days for extension:');
             if (days && !isNaN(days)) {

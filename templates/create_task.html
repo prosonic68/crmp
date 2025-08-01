@@ -465,8 +465,8 @@
                             </select>
                         </div>
                     </div>
-                    
-                    <div class="form-group">
+
+                        <div class="form-group">
                         <label><i class="fas fa-flag"></i> Priority</label>
                         <div class="priority-buttons">
                             <button type="button" class="priority-btn priority-low" data-priority="low">
@@ -480,12 +480,11 @@
                             </button>
                         </div>
                         <input type="hidden" id="priority" name="priority" value="medium">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label><i class="fas fa-calendar-alt"></i> Timeline (Days)</label>
-                        <input type="range" id="timeline" name="timeline_days" min="1" max="30" value="7" class="timeline-slider">
-                        <div class="timeline-value" id="timelineValue">7 days</div>
+                        </div>
+                        
+                        <div class="form-group">
+                        <label for="target_date"><i class="fas fa-calendar-alt"></i> Target Date *</label>
+                        <input type="date" id="target_date" name="target_date" required>
                     </div>
                 </div>
             </div>
@@ -513,7 +512,7 @@
                                         <div class="assignee-role">{{ user_data.role|title }}</div>
                                     </div>
                                 {% endif %}
-                            {% endfor %}
+                                {% endfor %}
                         </div>
                         <input type="hidden" id="assigned_to" name="assigned_to" value="{{ pre_filled_assigned_to }}" required>
                     </div>
@@ -574,7 +573,7 @@
                     </div>
                 </div>
             </div>
-
+            
             <!-- Form Actions -->
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" id="prevBtn" onclick="previousStep()" style="display: none;">
@@ -657,7 +656,8 @@
                 case 1:
                     const title = document.getElementById('title').value.trim();
                     const description = document.getElementById('description').value.trim();
-                    if (!title || !description) {
+                    const targetDate = document.getElementById('target_date').value;
+                    if (!title || !description || !targetDate) {
                         alert('Please fill in all required fields.');
                         return false;
                     }
@@ -682,7 +682,7 @@
             const category = document.getElementById('category').value;
             const department = document.getElementById('department').value;
             const priority = document.getElementById('priority').value;
-            const timeline = document.getElementById('timeline').value;
+            const targetDate = document.getElementById('target_date').value;
             
             reviewContent.innerHTML = `
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
@@ -701,7 +701,7 @@
                             <strong>Priority:</strong> ${priority.charAt(0).toUpperCase() + priority.slice(1)}
                         </div>
                         <div>
-                            <strong>Timeline:</strong> ${timeline} days
+                            <strong>Target Date:</strong> ${targetDate}
                         </div>
                         <div>
                             <strong>Assigned To:</strong> ${selectedAssignee ? users[selectedAssignee].name : 'Not selected'}
@@ -716,10 +716,10 @@
                             <strong>Attachments:</strong> ${selectedFiles.length} file(s)
                         </div>
                     ` : ''}
-                </div>
-            `;
-        }
-
+                        </div>
+                    `;
+                }
+                
         // Priority buttons
         document.querySelectorAll('.priority-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -729,9 +729,14 @@
             });
         });
 
-        // Timeline slider
-        document.getElementById('timeline').addEventListener('input', function() {
-            document.getElementById('timelineValue').textContent = this.value + ' days';
+        // Target date validation
+        document.getElementById('target_date').addEventListener('change', function() {
+            const selectedDate = new Date(this.value);
+            const today = new Date();
+            if (selectedDate < today) {
+                alert('Target date cannot be in the past');
+                this.value = '';
+            }
         });
 
         // Assignee selection
@@ -834,14 +839,7 @@
         updateStepDisplay();
 
         // Users data for review (this would come from the server)
-        const users = {
-            {% for username, user_data in users.items() %}
-                '{{ username }}': {
-                    name: '{{ user_data.name }}',
-                    role: '{{ user_data.role }}'
-                },
-            {% endfor %}
-        };
+        const users = JSON.parse('{{ users|tojson|safe }}');
     </script>
 </body>
 </html> 

@@ -1,25 +1,33 @@
-# Google Gemini AI API Key
-# Get your API key from: https://makersuite.google.com/app/apikey
-GEMINI_API_KEY=AIzaSyDigFJLH565HUg6OdqfgLHnU9Qh9KUnblQ
+# Production Environment Variables
+# Copy this file to .env and fill in your actual values
 
-# Production Configuration
-FLASK_DEBUG=false
+# Flask Configuration
+FLASK_DEBUG=False
 SECRET_KEY=your-super-secret-key-change-this-in-production
+PORT=8080
 
-# Email Configuration (Optional)
-EMAIL_ENABLED=false
+# Email Configuration
+EMAIL_ENABLED=False
 EMAIL_PROVIDER=prosonic
-
-# Prosonic Email Configuration
 SMTP_SERVER=smtp.prosonic.in
 SMTP_PORT=587
-SMTP_USERNAME=sm@prosonic.in
-SMTP_PASSWORD=your_password_here
-SMTP_FROM_EMAIL=sm@prosonic.in
+SMTP_USERNAME=your-email@prosonic.in
+SMTP_PASSWORD=your-email-password
+SMTP_FROM_EMAIL=your-email@prosonic.in
 
-# Gmail Configuration (Alternative)
-# GMAIL_SMTP_SERVER=smtp.gmail.com
-# GMAIL_SMTP_PORT=587
-# GMAIL_USERNAME=your-gmail@gmail.com
-# GMAIL_PASSWORD=your-app-password
-# GMAIL_FROM_EMAIL=your-gmail@gmail.com 
+# Prosonic SMTP (if using company email)
+PROSONIC_SMTP_SERVER=smtp.prosonic.in
+PROSONIC_SMTP_PORT=587
+PROSONIC_SMTP_USERNAME=your-email@prosonic.in
+PROSONIC_SMTP_PASSWORD=your-email-password
+PROSONIC_SMTP_FROM_EMAIL=your-email@prosonic.in
+
+# Gmail SMTP (if using Gmail)
+GMAIL_SMTP_SERVER=smtp.gmail.com
+GMAIL_SMTP_PORT=587
+GMAIL_USERNAME=your-gmail@gmail.com
+GMAIL_PASSWORD=your-app-password
+GMAIL_FROM_EMAIL=your-gmail@gmail.com
+
+# AI Assistant (Optional)
+GOOGLE_API_KEY=your-google-api-key-here 
