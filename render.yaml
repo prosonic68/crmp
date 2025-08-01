@@ -12,6 +12,8 @@ services:
         generateValue: true
       - key: FLASK_DEBUG
         value: false
+      - key: PORT
+        value: 8080
       - key: EMAIL_ENABLED
         value: false
       - key: EMAIL_PROVIDER
@@ -21,11 +23,21 @@ services:
       - key: SMTP_PORT
         value: 587
       - key: SMTP_USERNAME
-        value: sm@prosonic.in
+        sync: false
       - key: SMTP_PASSWORD
         sync: false
       - key: SMTP_FROM_EMAIL
-        value: sm@prosonic.in
+        sync: false
+      - key: PROSONIC_SMTP_SERVER
+        value: smtp.prosonic.in
+      - key: PROSONIC_SMTP_PORT
+        value: 587
+      - key: PROSONIC_SMTP_USERNAME
+        sync: false
+      - key: PROSONIC_SMTP_PASSWORD
+        sync: false
+      - key: PROSONIC_SMTP_FROM_EMAIL
+        sync: false
       - key: GMAIL_SMTP_SERVER
         value: smtp.gmail.com
       - key: GMAIL_SMTP_PORT
@@ -36,5 +48,5 @@ services:
         sync: false
       - key: GMAIL_FROM_EMAIL
         sync: false
-      - key: GEMINI_API_KEY
+      - key: GOOGLE_API_KEY
         sync: false 
