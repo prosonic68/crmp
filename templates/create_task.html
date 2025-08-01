@@ -484,7 +484,12 @@
                         
                         <div class="form-group">
                         <label for="target_date"><i class="fas fa-calendar-alt"></i> Target Date *</label>
-                        <input type="date" id="target_date" name="target_date" required>
+                        <input type="date" id="target_date" name="target_date" required min="{{ today_date }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="target_time"><i class="fas fa-clock"></i> Target Time *</label>
+                        <input type="time" id="target_time" name="target_time" required>
                     </div>
                 </div>
             </div>
@@ -657,7 +662,8 @@
                     const title = document.getElementById('title').value.trim();
                     const description = document.getElementById('description').value.trim();
                     const targetDate = document.getElementById('target_date').value;
-                    if (!title || !description || !targetDate) {
+                    const targetTime = document.getElementById('target_time').value;
+                    if (!title || !description || !targetDate || !targetTime) {
                         alert('Please fill in all required fields.');
                         return false;
                     }
@@ -683,6 +689,7 @@
             const department = document.getElementById('department').value;
             const priority = document.getElementById('priority').value;
             const targetDate = document.getElementById('target_date').value;
+            const targetTime = document.getElementById('target_time').value;
             
             reviewContent.innerHTML = `
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
@@ -702,6 +709,9 @@
                         </div>
                         <div>
                             <strong>Target Date:</strong> ${targetDate}
+                        </div>
+                        <div>
+                            <strong>Target Time:</strong> ${targetTime}
                         </div>
                         <div>
                             <strong>Assigned To:</strong> ${selectedAssignee ? users[selectedAssignee].name : 'Not selected'}
@@ -733,9 +743,19 @@
         document.getElementById('target_date').addEventListener('change', function() {
             const selectedDate = new Date(this.value);
             const today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset time to start of day
             if (selectedDate < today) {
                 alert('Target date cannot be in the past');
                 this.value = '';
+            }
+        });
+        
+        // Set default time to current time + 1 hour
+        document.getElementById('target_time').addEventListener('focus', function() {
+            if (!this.value) {
+                const now = new Date();
+                const defaultTime = new Date(now.getTime() + 60 * 60 * 1000); // Add 1 hour
+                this.value = defaultTime.toTimeString().slice(0, 5);
             }
         });
 

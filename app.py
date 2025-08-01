@@ -573,13 +573,14 @@ def create_task():
         assigned_to = request.form.get('assigned_to')
         priority = request.form.get('priority')
         target_date = request.form.get('target_date')
+        target_time = request.form.get('target_time')
         category = request.form.get('category')
         department = request.form.get('department')
         project = request.form.get('project')
         
-        if not all([title, description, assigned_to, priority, target_date]):
+        if not all([title, description, assigned_to, priority, target_date, target_time]):
             flash('All required fields must be filled', 'error')
-            return render_template('create_task.html', users=users, departments=departments, projects=projects)
+            return render_template('create_task.html', users=users, departments=departments, projects=projects, today_date=datetime.now().strftime('%Y-%m-%d'))
         
         # Validate assigned_to based on user role
         if users[user]['role'] == 'manager':
@@ -594,10 +595,13 @@ def create_task():
                 return render_template('create_task.html', users=users, departments=departments, projects=projects)
         
         try:
-            target_date = datetime.strptime(target_date, '%Y-%m-%d').date()
+            # Combine date and time
+            datetime_str = f"{target_date} {target_time}"
+            target_datetime = datetime.strptime(datetime_str, '%Y-%m-%d %H:%M')
+            target_date = target_datetime.date()
         except ValueError:
-            flash('Invalid target date format', 'error')
-            return render_template('create_task.html', users=users, departments=departments, projects=projects)
+            flash('Invalid date or time format', 'error')
+            return render_template('create_task.html', users=users, departments=departments, projects=projects, today_date=datetime.now().strftime('%Y-%m-%d'))
         
         # Calculate timeline_days from target_date
         timeline_days = (target_date - datetime.now().date()).days
@@ -627,7 +631,8 @@ def create_task():
                          users=users, 
                          departments=departments, 
                          projects=projects,
-                         pre_filled_assigned_to=pre_filled_assigned_to)
+                         pre_filled_assigned_to=pre_filled_assigned_to,
+                         today_date=datetime.now().strftime('%Y-%m-%d'))
 
 @app.route('/accept_task/<int:task_id>')
 def accept_task(task_id):
