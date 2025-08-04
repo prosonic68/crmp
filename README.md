@@ -45,6 +45,39 @@ A comprehensive Flask-based task management system with role-based access, KRA s
    - Open browser and go to: `http://localhost:5000`
    - Login with demo credentials above
 
+## Email Configuration (Gmail Setup)
+
+The system now uses **Gmail SMTP** as the default email provider for sending task reminders and notifications.
+
+### Setting up Gmail for Email Reminders
+
+1. **Enable 2-Factor Authentication** on your Gmail account
+2. **Generate an App Password:**
+   - Go to Google Account settings
+   - Navigate to Security → 2-Step Verification → App passwords
+   - Generate a new app password for "Mail"
+3. **Configure Environment Variables:**
+   ```bash
+   # Copy the example file
+   cp env_example.txt .env
+   
+   # Edit .env with your Gmail credentials
+   EMAIL_ENABLED=true
+   EMAIL_PROVIDER=gmail
+   GMAIL_USERNAME=your-gmail@gmail.com
+   GMAIL_PASSWORD=your-app-password
+   GMAIL_FROM_EMAIL=your-gmail@gmail.com
+   ```
+
+### Email Features
+- **Automatic Reminders**: Sent for overdue tasks, tasks due tomorrow, and tasks due soon
+- **Manual Reminders**: Admin can send custom reminders for specific tasks
+- **Reminder History**: Track all sent reminders with timestamps and messages
+- **Anti-Spam Protection**: 24-hour cooldown between reminders for the same task
+
+### Testing Email Configuration
+Visit `/test_email` route to test your email setup before sending actual reminders.
+
 ## Deployment Options
 
 ### Option 1: Heroku (Recommended for Demo)
@@ -154,13 +187,27 @@ gunicorn --bind 0.0.0.0:8080 --workers 4 wsgi:app
 SECRET_KEY=your-super-secret-key
 FLASK_DEBUG=false
 
-# Email Configuration
+# Email Configuration (Gmail is now the default)
 EMAIL_ENABLED=true
-EMAIL_PROVIDER=prosonic
-SMTP_SERVER=smtp.prosonic.in
-SMTP_USERNAME=sm@prosonic.in
-SMTP_PASSWORD=your_password
-SMTP_FROM_EMAIL=sm@prosonic.in
+EMAIL_PROVIDER=gmail
+SMTP_SERVER=smtp.gmail.com
+SMTP_USERNAME=your-gmail@gmail.com
+SMTP_PASSWORD=your-app-password
+SMTP_FROM_EMAIL=your-gmail@gmail.com
+
+# Gmail SMTP Configuration (Default - Recommended)
+GMAIL_SMTP_SERVER=smtp.gmail.com
+GMAIL_SMTP_PORT=587
+GMAIL_USERNAME=your-gmail@gmail.com
+GMAIL_PASSWORD=your-app-password
+GMAIL_FROM_EMAIL=your-gmail@gmail.com
+
+# Prosonic SMTP (Optional - for company email)
+PROSONIC_SMTP_SERVER=smtp.prosonic.in
+PROSONIC_SMTP_PORT=587
+PROSONIC_SMTP_USERNAME=your-email@prosonic.in
+PROSONIC_SMTP_PASSWORD=your-email-password
+PROSONIC_SMTP_FROM_EMAIL=your-email@prosonic.in
 
 # AI Configuration (Optional)
 GEMINI_API_KEY=your_api_key

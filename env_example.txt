@@ -6,28 +6,28 @@ FLASK_DEBUG=False
 SECRET_KEY=your-super-secret-key-change-this-in-production
 PORT=8080
 
-# Email Configuration
+# Email Configuration (Gmail is now the default)
 EMAIL_ENABLED=False
-EMAIL_PROVIDER=prosonic
-SMTP_SERVER=smtp.prosonic.in
+EMAIL_PROVIDER=gmail
+SMTP_SERVER=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USERNAME=your-email@prosonic.in
-SMTP_PASSWORD=your-email-password
-SMTP_FROM_EMAIL=your-email@prosonic.in
+SMTP_USERNAME=your-gmail@gmail.com
+SMTP_PASSWORD=your-app-password
+SMTP_FROM_EMAIL=your-gmail@gmail.com
 
-# Prosonic SMTP (if using company email)
-PROSONIC_SMTP_SERVER=smtp.prosonic.in
-PROSONIC_SMTP_PORT=587
-PROSONIC_SMTP_USERNAME=your-email@prosonic.in
-PROSONIC_SMTP_PASSWORD=your-email-password
-PROSONIC_SMTP_FROM_EMAIL=your-email@prosonic.in
-
-# Gmail SMTP (if using Gmail)
+# Gmail SMTP Configuration (Default - Recommended)
 GMAIL_SMTP_SERVER=smtp.gmail.com
 GMAIL_SMTP_PORT=587
 GMAIL_USERNAME=your-gmail@gmail.com
 GMAIL_PASSWORD=your-app-password
 GMAIL_FROM_EMAIL=your-gmail@gmail.com
+
+# Prosonic SMTP (if using company email - Optional)
+PROSONIC_SMTP_SERVER=smtp.prosonic.in
+PROSONIC_SMTP_PORT=587
+PROSONIC_SMTP_USERNAME=your-email@prosonic.in
+PROSONIC_SMTP_PASSWORD=your-email-password
+PROSONIC_SMTP_FROM_EMAIL=your-email@prosonic.in
 
 # AI Assistant (Optional)
 GOOGLE_API_KEY=your-google-api-key-here 

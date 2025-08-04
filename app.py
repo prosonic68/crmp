@@ -32,8 +32,8 @@ def not_found_error(error):
 # --- Email Configuration ---
 EMAIL_CONFIG = {
     'enabled': os.environ.get('EMAIL_ENABLED', 'False').lower() == 'true',
-    'provider': os.environ.get('EMAIL_PROVIDER', 'prosonic'),  # 'gmail' or 'prosonic'
-    'smtp_server': os.environ.get('SMTP_SERVER', 'smtp.prosonic.in'),
+    'provider': os.environ.get('EMAIL_PROVIDER', 'gmail'),  # 'gmail' or 'prosonic'
+    'smtp_server': os.environ.get('SMTP_SERVER', 'smtp.gmail.com'),
     'smtp_port': int(os.environ.get('SMTP_PORT', '587')),
     'username': os.environ.get('SMTP_USERNAME', ''),
     'password': os.environ.get('SMTP_PASSWORD', ''),
@@ -192,20 +192,20 @@ task_requests = []
 kra_scores = {}
 
 def send_email(to_email, subject, body, reminder_type='general'):
-    """Send email notification using Prosonic SMTP strictly"""
+    """Send email notification using Gmail SMTP"""
     try:
         msg = MIMEMultipart()
         
-        # Use Prosonic SMTP configuration
+        # Use Gmail SMTP configuration by default
         if EMAIL_CONFIG['provider'] == 'prosonic':
             msg['From'] = PROSONIC_EMAIL_CONFIG['from_email']
             smtp_config = PROSONIC_EMAIL_CONFIG
         else:
-            msg['From'] = EMAIL_CONFIG['from_email']
-            smtp_config = EMAIL_CONFIG
+            msg['From'] = GMAIL_EMAIL_CONFIG['from_email']
+            smtp_config = GMAIL_EMAIL_CONFIG
             
         msg['To'] = to_email
-        msg['Subject'] = f"[Prosonic Task Manager] {subject}"
+        msg['Subject'] = f"[Task Manager] {subject}"
         
         # Create HTML email template with reminder-specific styling
         priority_color = '#dc3545' if 'URGENT' in subject else '#667eea'
@@ -220,20 +220,20 @@ def send_email(to_email, subject, body, reminder_type='general'):
                 .content {{ padding: 20px; }}
                 .footer {{ background: #f8f9fa; padding: 15px; text-align: center; color: #666; font-size: 12px; }}
                 .btn {{ display: inline-block; padding: 10px 20px; background: {priority_color}; color: white; text-decoration: none; border-radius: 5px; }}
-                .prosonic {{ color: #dc3545; font-weight: bold; }}
+                .gmail {{ color: #4285f4; font-weight: bold; }}
                 .reminder-badge {{ background: {priority_color}; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px; }}
             </style>
         </head>
         <body>
             <div class="header">
-                <h1>{reminder_icon} <span class="prosonic">Prosonic</span> Task Manager</h1>
+                <h1>{reminder_icon} <span class="gmail">Gmail</span> Task Manager</h1>
                 <div class="reminder-badge">{reminder_type.upper()} REMINDER</div>
             </div>
             <div class="content">
                 {body.replace(chr(10), '<br>')}
             </div>
             <div class="footer">
-                <p>This is an automated notification from <span class="prosonic">Prosonic</span> Task Management System</p>
+                <p>This is an automated notification from <span class="gmail">Gmail</span> Task Management System</p>
                 <p>Please do not reply to this email</p>
             </div>
         </body>
@@ -243,16 +243,16 @@ def send_email(to_email, subject, body, reminder_type='general'):
         msg.attach(MIMEText(html_body, 'html'))
         
         if EMAIL_CONFIG['enabled']:
-            # Send real email using Prosonic SMTP
+            # Send real email using Gmail SMTP
             server = smtplib.SMTP(smtp_config['smtp_server'], smtp_config['smtp_port'])
             server.starttls()
             server.login(smtp_config['username'], smtp_config['password'])
             server.send_message(msg)
             server.quit()
-            print(f"✅ Email sent via Prosonic SMTP to {to_email}: {subject}")
+            print(f"✅ Email sent via Gmail SMTP to {to_email}: {subject}")
         else:
             # Just print for testing
-            print(f"📧 Email would be sent via Prosonic SMTP to {to_email}: {subject}")
+            print(f"📧 Email would be sent via Gmail SMTP to {to_email}: {subject}")
             print(f"📧 Email body: {body}")
             
     except Exception as e:
