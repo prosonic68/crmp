@@ -40,13 +40,13 @@ EMAIL_CONFIG = {
     'from_email': os.environ.get('SMTP_FROM_EMAIL', '')
 }
 
-# Prosonic SMTP Configuration (if using company email)
+# Prosonic SMTP Configuration (strictly for company email)
 PROSONIC_EMAIL_CONFIG = {
     'smtp_server': os.environ.get('PROSONIC_SMTP_SERVER', 'smtp.prosonic.in'),
     'smtp_port': int(os.environ.get('PROSONIC_SMTP_PORT', '587')),
-    'username': os.environ.get('PROSONIC_SMTP_USERNAME', ''),
+    'username': os.environ.get('PROSONIC_SMTP_USERNAME', 'sm@prosonic.in'),
     'password': os.environ.get('PROSONIC_SMTP_PASSWORD', ''),
-    'from_email': os.environ.get('PROSONIC_SMTP_FROM_EMAIL', '')
+    'from_email': os.environ.get('PROSONIC_SMTP_FROM_EMAIL', 'sm@prosonic.in')
 }
 
 # Gmail SMTP Configuration (for Gmail users)
@@ -79,11 +79,13 @@ class Task:
         self.completion_date = None
         self.validation_date = None
         self.roadmap = []
-        self.reminders = []
+        self.reminders = []  # Track all reminders sent
         self.extension_requests = []
         self.kra_score = 0
         self.quality_score = 0
         self.collaboration_score = 0
+        self.last_reminder_date = None  # Track when last reminder was sent
+        self.reminder_count = 0  # Count of reminders sent
 
 # --- In-memory users dictionary (no database) ---
 users = {
@@ -189,30 +191,43 @@ tasks[5].kra_score = 91.8
 task_requests = []
 kra_scores = {}
 
-def send_email(to_email, subject, body):
-    """Send email notification using configured SMTP"""
+def send_email(to_email, subject, body, reminder_type='general'):
+    """Send email notification using Prosonic SMTP strictly"""
     try:
         msg = MIMEMultipart()
-        msg['From'] = EMAIL_CONFIG['from_email']
+        
+        # Use Prosonic SMTP configuration
+        if EMAIL_CONFIG['provider'] == 'prosonic':
+            msg['From'] = PROSONIC_EMAIL_CONFIG['from_email']
+            smtp_config = PROSONIC_EMAIL_CONFIG
+        else:
+            msg['From'] = EMAIL_CONFIG['from_email']
+            smtp_config = EMAIL_CONFIG
+            
         msg['To'] = to_email
         msg['Subject'] = f"[Prosonic Task Manager] {subject}"
         
-        # Create HTML email template
+        # Create HTML email template with reminder-specific styling
+        priority_color = '#dc3545' if 'URGENT' in subject else '#667eea'
+        reminder_icon = '🚨' if reminder_type == 'urgent' else '📧' if reminder_type == 'manual' else '⏰'
+        
         html_body = f"""
         <html>
         <head>
             <style>
                 body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
-                .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }}
+                .header {{ background: linear-gradient(135deg, {priority_color} 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }}
                 .content {{ padding: 20px; }}
                 .footer {{ background: #f8f9fa; padding: 15px; text-align: center; color: #666; font-size: 12px; }}
-                .btn {{ display: inline-block; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; }}
+                .btn {{ display: inline-block; padding: 10px 20px; background: {priority_color}; color: white; text-decoration: none; border-radius: 5px; }}
                 .prosonic {{ color: #dc3545; font-weight: bold; }}
+                .reminder-badge {{ background: {priority_color}; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px; }}
             </style>
         </head>
         <body>
             <div class="header">
-                <h1>🚀 <span class="prosonic">Prosonic</span> Task Manager</h1>
+                <h1>{reminder_icon} <span class="prosonic">Prosonic</span> Task Manager</h1>
+                <div class="reminder-badge">{reminder_type.upper()} REMINDER</div>
             </div>
             <div class="content">
                 {body.replace(chr(10), '<br>')}
@@ -228,20 +243,23 @@ def send_email(to_email, subject, body):
         msg.attach(MIMEText(html_body, 'html'))
         
         if EMAIL_CONFIG['enabled']:
-            # Send real email
-            server = smtplib.SMTP(EMAIL_CONFIG['smtp_server'], EMAIL_CONFIG['smtp_port'])
+            # Send real email using Prosonic SMTP
+            server = smtplib.SMTP(smtp_config['smtp_server'], smtp_config['smtp_port'])
             server.starttls()
-            server.login(EMAIL_CONFIG['username'], EMAIL_CONFIG['password'])
+            server.login(smtp_config['username'], smtp_config['password'])
             server.send_message(msg)
             server.quit()
-            print(f"✅ Email sent to {to_email}: {subject}")
+            print(f"✅ Email sent via Prosonic SMTP to {to_email}: {subject}")
         else:
             # Just print for testing
-            print(f"📧 Email would be sent to {to_email}: {subject}")
+            print(f"📧 Email would be sent via Prosonic SMTP to {to_email}: {subject}")
             print(f"📧 Email body: {body}")
             
     except Exception as e:
         print(f"❌ Email sending failed: {e}")
+        return False
+    
+    return True
 
 def calculate_kra_score(task):
     """Calculate comprehensive KRA score"""
@@ -846,24 +864,88 @@ def send_daily_kra():
     flash('Daily KRA scores sent to all team members!')
     return redirect(url_for('admin_dashboard'))
 
-@app.route('/send_task_reminders')
-def send_task_reminders():
-    """Send reminders for pending and overdue tasks"""
-    if 'user' not in session or users[session['user']]['role'] != 'admin':
-        return redirect(url_for('login'))
+def send_manual_reminder(task_id, reminder_message='', reminder_type='manual'):
+    """Send manual reminder for a specific task"""
+    task = next((t for t in tasks if t.id == task_id), None)
+    if not task:
+        return False, "Task not found"
     
+    # Check if reminder was sent recently (within 24 hours)
+    if task.last_reminder_date and (datetime.now() - task.last_reminder_date).days < 1:
+        return False, "Reminder already sent recently"
+    
+    assigned_user = users[task.assigned_to]
+    assigned_user_email = assigned_user['email']
+    
+    # Create reminder message
+    if not reminder_message:
+        reminder_message = f"Please update the status of task '{task.title}'"
+    
+    subject = f'Manual Reminder: {task.title}'
+    body = f'''{reminder_message}
+
+Task Details:
+- Title: {task.title}
+- Status: {task.status.upper()}
+- Priority: {task.priority.upper()}
+- Due Date: {task.target_date.strftime('%Y-%m-%d')}
+- Assigned To: {assigned_user['name']}
+
+Task Description: {task.description}
+
+Please update the task status or contact your manager if you need assistance.'''
+    
+    # Send email
+    success = send_email(assigned_user_email, subject, body, reminder_type)
+    
+    if success:
+        # Update task reminder tracking
+        task.reminders.append({
+            'date': datetime.now(),
+            'type': reminder_type,
+            'message': reminder_message,
+            'sent_by': session.get('user', 'system')
+        })
+        task.last_reminder_date = datetime.now()
+        task.reminder_count += 1
+        
+        # Also notify manager
+        if task.assigned_to in users and 'manager' in users[task.assigned_to]:
+            manager = users[task.assigned_to]['manager']
+            if manager in users:
+                manager_email = users[manager]['email']
+                manager_subject = f'Manual Reminder Sent: {task.title}'
+                manager_body = f'''A manual reminder was sent to {assigned_user['name']} for task "{task.title}".
+
+Reminder Message: {reminder_message}
+
+Task Status: {task.status.upper()}
+Due Date: {task.target_date.strftime('%Y-%m-%d')}'''
+                
+                send_email(manager_email, manager_subject, manager_body, 'manual')
+    
+    return success, "Reminder sent successfully" if success else "Failed to send reminder"
+
+def send_automatic_reminders():
+    """Send automatic reminders based on task status and due dates"""
     today = datetime.now()
     reminders_sent = 0
+    reminder_details = []
     
     for task in tasks:
         if task.status in ['pending', 'accepted', 'in_progress']:
-            # Check if task is due soon or overdue
             days_until_due = (task.target_date - today).days
             
+            # Determine reminder type and frequency
+            reminder_needed = False
+            reminder_type = 'automatic'
+            
             if days_until_due <= 0:  # Overdue
+                reminder_needed = True
+                reminder_type = 'urgent'
                 subject = f'URGENT: Overdue Task - {task.title}'
                 body = f'''Task "{task.title}" is OVERDUE!
-                
+
 Due Date: {task.target_date.strftime('%Y-%m-%d')}
 Days Overdue: {abs(days_until_due)}
 Priority: {task.priority.upper()}
@@ -872,26 +954,133 @@ Please complete this task immediately.
 
 Task Description: {task.description}'''
                 
-            elif days_until_due <= 2:  # Due soon
+            elif days_until_due <= 1:  # Due tomorrow
+                reminder_needed = True
+                reminder_type = 'urgent'
+                subject = f'URGENT: Task Due Tomorrow - {task.title}'
+                body = f'''Task "{task.title}" is due TOMORROW!
+
+Due Date: {task.target_date.strftime('%Y-%m-%d')}
+Priority: {task.priority.upper()}
+
+Please complete this task today.
+
+Task Description: {task.description}'''
+                
+            elif days_until_due <= 3:  # Due soon
+                reminder_needed = True
+                reminder_type = 'automatic'
                 subject = f'Reminder: Task Due Soon - {task.title}'
                 body = f'''Task "{task.title}" is due in {days_until_due} day(s).
-                
+
 Due Date: {task.target_date.strftime('%Y-%m-%d')}
 Priority: {task.priority.upper()}
 
 Please ensure timely completion.
 
 Task Description: {task.description}'''
-            else:
-                continue
             
-            # Send reminder to assigned user
-            assigned_user_email = users[task.assigned_to]['email']
-            send_email(assigned_user_email, subject, body)
-            reminders_sent += 1
+            # Check if reminder was sent recently (avoid spam)
+            if reminder_needed:
+                last_reminder_days = 0
+                if task.last_reminder_date:
+                    last_reminder_days = (today - task.last_reminder_date).days
+                
+                # Send reminder if not sent recently
+                if last_reminder_days >= 1 or task.reminder_count == 0:
+                    assigned_user_email = users[task.assigned_to]['email']
+                    success = send_email(assigned_user_email, subject, body, reminder_type)
+                    
+                    if success:
+                        # Update task reminder tracking
+                        task.reminders.append({
+                            'date': datetime.now(),
+                            'type': reminder_type,
+                            'message': f'Automatic reminder for task due in {days_until_due} days',
+                            'sent_by': 'system'
+                        })
+                        task.last_reminder_date = datetime.now()
+                        task.reminder_count += 1
+                        reminders_sent += 1
+                        
+                        reminder_details.append({
+                            'task': task.title,
+                            'user': users[task.assigned_to]['name'],
+                            'type': reminder_type,
+                            'days_until_due': days_until_due
+                        })
     
-    flash(f'Task reminders sent: {reminders_sent} emails')
+    return reminders_sent, reminder_details
+
+@app.route('/send_task_reminders')
+def send_task_reminders():
+    """Send automatic reminders for pending and overdue tasks"""
+    if 'user' not in session or users[session['user']]['role'] != 'admin':
+        return redirect(url_for('login'))
+    
+    reminders_sent, reminder_details = send_automatic_reminders()
+    
+    if reminders_sent > 0:
+        details_text = "\n".join([f"- {r['task']} ({r['user']}) - {r['type']}" for r in reminder_details])
+        flash(f'✅ Automatic reminders sent: {reminders_sent} emails\n\nDetails:\n{details_text}')
+    else:
+        flash('ℹ️ No automatic reminders needed at this time')
+    
     return redirect(url_for('admin_dashboard'))
+
+@app.route('/send_manual_reminder/<int:task_id>', methods=['POST'])
+def send_manual_reminder_route(task_id):
+    """Send manual reminder for a specific task"""
+    if 'user' not in session or users[session['user']]['role'] not in ['admin', 'manager']:
+        return redirect(url_for('login'))
+    
+    reminder_message = request.form.get('reminder_message', '')
+    reminder_type = request.form.get('reminder_type', 'manual')
+    
+    success, message = send_manual_reminder(task_id, reminder_message, reminder_type)
+    
+    if success:
+        flash(f'✅ {message}')
+    else:
+        flash(f'❌ {message}')
+    
+    return redirect(request.referrer or url_for('admin_dashboard'))
+
+def get_reminder_history(task_id):
+    """Get reminder history for a specific task"""
+    task = next((t for t in tasks if t.id == task_id), None)
+    if not task:
+        return []
+    
+    return task.reminders
+
+@app.route('/task_reminder_history/<int:task_id>')
+def task_reminder_history(task_id):
+    """View reminder history for a specific task"""
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    user = session['user']
+    if user not in users:
+        return redirect(url_for('login'))
+    
+    # Check if user has permission to view this task
+    task = next((t for t in tasks if t.id == task_id), None)
+    if not task:
+        flash('Task not found')
+        return redirect(url_for('admin_dashboard'))
+    
+    # Only admin, manager, or task assignee can view reminder history
+    if users[user]['role'] not in ['admin', 'manager'] and task.assigned_to != user:
+        flash('You do not have permission to view this task')
+        return redirect(url_for('member_dashboard'))
+    
+    reminder_history = get_reminder_history(task_id)
+    
+    return render_template('task_reminder_history.html',
+                         task=task,
+                         reminder_history=reminder_history,
+                         users=users)
 
 @app.route('/test_email')
 def test_email():

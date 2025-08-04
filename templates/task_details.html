@@ -530,38 +530,55 @@
                     <a href="{{ url_for('accept_task', task_id=task.id) }}" class="btn btn-success">
                         <i class="fas fa-check"></i> Accept Task
                     </a>
-                {% endif %}
-                
-                {% if task.status == 'accepted' or task.status == 'in_progress' %}
-                    <a href="{{ url_for('complete_task', task_id=task.id) }}" class="btn btn-success">
-                        <i class="fas fa-flag-checkered"></i> Complete Task
+                {% elif task.status == 'accepted' %}
+                    <a href="{{ url_for('complete_task', task_id=task.id) }}" class="btn btn-primary">
+                        <i class="fas fa-flag-checkered"></i> Mark Complete
                     </a>
-                {% endif %}
-                
-                {% if task.status == 'completed' %}
+                {% elif task.status == 'completed' and users[session['user']]['role'] in ['admin', 'manager'] %}
                     <a href="{{ url_for('validate_task', task_id=task.id) }}" class="btn btn-success">
                         <i class="fas fa-check-double"></i> Validate Task
                     </a>
+                {% elif task.status == 'validated' and users[session['user']]['role'] in ['admin', 'manager'] %}
                     <a href="{{ url_for('reopen_task', task_id=task.id) }}" class="btn btn-warning">
                         <i class="fas fa-redo"></i> Reopen Task
                     </a>
                 {% endif %}
                 
-                {% if task.status == 'validated' %}
-                    <a href="{{ url_for('reopen_task', task_id=task.id) }}" class="btn btn-warning">
-                        <i class="fas fa-redo"></i> Reopen Task
-                    </a>
+                {% if task.status in ['pending', 'accepted', 'in_progress'] %}
+                    <button type="button" class="btn btn-info" data-toggle="modal" data-target="#reminderModal">
+                        <i class="fas fa-bell"></i> Send Reminder
+                    </button>
                 {% endif %}
                 
-                <button class="btn btn-secondary" onclick="requestExtension()">
-                    <i class="fas fa-clock"></i> Request Extension
-                </button>
-                
-                <button class="btn btn-secondary" onclick="addMedia()">
-                    <i class="fas fa-camera"></i> Add Media
-                </button>
+                {% if users[session['user']]['role'] in ['admin', 'manager'] or task.assigned_to == session['user'] %}
+                    <a href="{{ url_for('task_reminder_history', task_id=task.id) }}" class="btn btn-secondary">
+                        <i class="fas fa-history"></i> Reminder History
+                    </a>
+                {% endif %}
             </div>
         </div>
+
+        <!-- Reminder Information -->
+        {% if task.reminder_count > 0 %}
+        <div class="task-section">
+            <h3 class="section-title">
+                <i class="fas fa-bell"></i>
+                Reminder Information
+            </h3>
+            <div class="reminder-info">
+                <div class="info-row">
+                    <span class="info-label">Reminders Sent:</span>
+                    <span class="info-value">{{ task.reminder_count }}</span>
+                </div>
+                {% if task.last_reminder_date %}
+                <div class="info-row">
+                    <span class="info-label">Last Reminder:</span>
+                    <span class="info-value">{{ task.last_reminder_date.strftime('%Y-%m-%d %H:%M') }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
 
         <!-- Media Section -->
         {% if task.media_files %}
@@ -585,6 +602,50 @@
                 </div>
             </div>
         {% endif %}
+    </div>
+
+    <!-- Reminder Modal -->
+    <div class="modal fade" id="reminderModal" tabindex="-1" role="dialog" aria-labelledby="reminderModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reminderModalLabel">
+                        <i class="fas fa-bell"></i> Send Reminder
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{{ url_for('send_manual_reminder_route', task_id=task.id) }}" method="POST">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="reminder_type">Reminder Type:</label>
+                            <select class="form-control" id="reminder_type" name="reminder_type" required>
+                                <option value="manual">Manual Reminder</option>
+                                <option value="urgent">Urgent Reminder</option>
+                                <option value="follow_up">Follow-up Reminder</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="reminder_message">Custom Message (Optional):</label>
+                            <textarea class="form-control" id="reminder_message" name="reminder_message" rows="4" 
+                                      placeholder="Enter a custom message for the reminder..."></textarea>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Note:</strong> This reminder will be sent to <strong>{{ users[task.assigned_to]['name'] }}</strong> 
+                            ({{ users[task.assigned_to]['email'] }})
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Send Reminder
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>
