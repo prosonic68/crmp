@@ -1030,8 +1030,8 @@ def send_task_reminders():
 
 @app.route('/send_manual_reminder/<int:task_id>', methods=['POST'])
 def send_manual_reminder_route(task_id):
-    """Send manual reminder for a specific task"""
-    if 'user' not in session or users[session['user']]['role'] not in ['admin', 'manager']:
+    """Send manual reminder for a specific task - Admin only"""
+    if 'user' not in session or users[session['user']]['role'] != 'admin':
         return redirect(url_for('login'))
     
     reminder_message = request.form.get('reminder_message', '')
@@ -1056,7 +1056,7 @@ def get_reminder_history(task_id):
 
 @app.route('/task_reminder_history/<int:task_id>')
 def task_reminder_history(task_id):
-    """View reminder history for a specific task"""
+    """View reminder history for a specific task - Admin only"""
     if 'user' not in session:
         return redirect(url_for('login'))
     
@@ -1070,10 +1070,10 @@ def task_reminder_history(task_id):
         flash('Task not found')
         return redirect(url_for('admin_dashboard'))
     
-    # Only admin, manager, or task assignee can view reminder history
-    if users[user]['role'] not in ['admin', 'manager'] and task.assigned_to != user:
-        flash('You do not have permission to view this task')
-        return redirect(url_for('member_dashboard'))
+    # Only admin can view reminder history
+    if users[user]['role'] != 'admin':
+        flash('You do not have permission to view reminder history')
+        return redirect(url_for('admin_dashboard'))
     
     reminder_history = get_reminder_history(task_id)
     

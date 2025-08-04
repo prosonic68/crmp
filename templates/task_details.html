@@ -544,13 +544,13 @@
                     </a>
                 {% endif %}
                 
-                {% if task.status in ['pending', 'accepted', 'in_progress'] %}
+                {% if task.status in ['pending', 'accepted', 'in_progress'] and users[session['user']]['role'] == 'admin' %}
                     <button type="button" class="btn btn-info" data-toggle="modal" data-target="#reminderModal">
                         <i class="fas fa-bell"></i> Send Reminder
                     </button>
                 {% endif %}
                 
-                {% if users[session['user']]['role'] in ['admin', 'manager'] or task.assigned_to == session['user'] %}
+                {% if users[session['user']]['role'] == 'admin' %}
                     <a href="{{ url_for('task_reminder_history', task_id=task.id) }}" class="btn btn-secondary">
                         <i class="fas fa-history"></i> Reminder History
                     </a>
@@ -559,7 +559,7 @@
         </div>
 
         <!-- Reminder Information -->
-        {% if task.reminder_count > 0 %}
+        {% if task.reminder_count > 0 and users[session['user']]['role'] == 'admin' %}
         <div class="task-section">
             <h3 class="section-title">
                 <i class="fas fa-bell"></i>
